@@ -67,22 +67,121 @@
 
             {{-- Navbar — fixed, tidak ikut scroll --}}
             <header class="bg-white px-8 py-4 flex items-center justify-end gap-4 border-b border-slate-100 shrink-0">
-                <button class="relative text-slate-500">
-                    <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+
+    {{-- Dropdown Notifikasi --}}
+    <div x-data="{ open: false }" class="relative">
+        <button @click="open = !open" class="relative text-slate-500">
+            <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+            </svg>
+            @if ($reminders->count() > 0)
+                <span class="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-primary rounded-full"></span>
+            @endif
+        </button>
+
+        <div x-show="open" x-cloak @click.outside="open = false"
+             class="absolute right-0 mt-3 w-96 bg-white rounded-2xl shadow-xl overflow-hidden z-50">
+
+            <div class="bg-secondary px-6 py-5">
+                <h3 class="text-white font-bold text-lg">Pengingat Pengembalian</h3>
+                <p class="text-slate-300 text-sm mt-0.5">{{ $reminders->count() }} barang perlu perhatian</p>
+            </div>
+
+            <div class="max-h-96 overflow-y-auto">
+                @forelse ($reminders as $reminder)
+                    @php
+                        $today = now()->startOfDay();
+                        $endDate = $reminder->end_date->copy()->startOfDay();
+                        $daysDiff = $today->diffInDays($endDate, false);
+                        $isOverdue = $daysDiff < 0;
+                    @endphp
+
+                    <div class="flex items-start gap-3 px-6 py-4 border-l-4 {{ $isOverdue ? 'border-danger' : 'border-warning' }} border-b border-slate-100 last:border-b-0">
+                        <div class="w-10 h-10 rounded-lg flex items-center justify-center shrink-0 {{ $isOverdue ? 'bg-danger' : 'bg-warning' }}">
+                            @if ($isOverdue)
+                                <svg class="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z"/>
+                                </svg>
+                            @else
+                                <svg class="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="9"/>
+                                    <path stroke-linecap="round" d="M12 7v5l3 3"/>
+                                </svg>
+                            @endif
+                        </div>
+
+                        <div class="flex-1 min-w-0">
+                            <p class="font-semibold text-secondary">{{ $reminder->item->name }}</p>
+                            <p class="text-sm text-slate-500 mb-2">
+                                Tenggat :
+                                @if ($daysDiff === -1) Kemarin
+                                @elseif ($daysDiff === 0) Hari ini
+                                @elseif ($daysDiff === 1) Besok
+                                @else {{ $endDate->translatedFormat('j F Y') }}
+                                @endif
+                            </p>
+
+                            <div class="flex items-center gap-3">
+                                <span class="{{ $isOverdue ? 'bg-danger' : 'bg-warning' }} text-white text-xs font-semibold px-3 py-1 rounded-full">
+                                    @if ($isOverdue) Terlambat
+                                    @elseif ($daysDiff === 1) Tersisa 1 hari
+                                    @elseif ($daysDiff === 0) Jatuh tempo hari ini
+                                    @else Tersisa {{ $daysDiff }} hari
+                                    @endif
+                                </span>
+
+                                <a href="{{ route('items.show', $reminder->item) }}" class="text-sm font-semibold text-secondary hover:underline">
+                                    Lihat Barang
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                @empty
+                    <p class="text-slate-500 text-center py-8 text-sm">Tidak ada pengingat saat ini.</p>
+                @endforelse
+            </div>
+
+            <a href="{{ route('transactions.index') }}"
+               class="block text-center bg-slate-50 text-secondary font-semibold py-4 hover:bg-slate-100 transition">
+                Lihat semua notifikasi
+            </a>
+        </div>
+    </div>
+
+    {{-- Dropdown Profil --}}
+    <div x-data="{ open: false }" class="relative">
+        <button @click="open = !open" class="flex items-center gap-3">
+            <div class="text-right leading-tight">
+                <p class="font-semibold text-secondary text-sm">{{ auth()->user()->name }}</p>
+                <p class="text-xs text-slate-400">{{ auth()->user()->isAdmin() ? 'Admin' : 'Mahasiswa' }}</p>
+            </div>
+
+            <div class="w-9 h-9 rounded-full bg-secondary text-white flex items-center justify-center font-semibold text-sm shrink-0">
+                {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
+            </div>
+        </button>
+
+        <div x-show="open" x-cloak @click.outside="open = false"
+             class="absolute right-0 mt-3 w-56 bg-white rounded-xl shadow-xl overflow-hidden z-50">
+
+            <div class="px-5 py-4 border-b border-slate-100">
+                <p class="font-semibold text-secondary">{{ auth()->user()->name }}</p>
+                <p class="text-xs text-slate-400">{{ auth()->user()->nim_nidn }}</p>
+            </div>
+
+            <form method="POST" action="{{ route('logout') }}">
+                @csrf
+                <button type="submit"
+                        class="w-full flex items-center gap-3 px-5 py-3.5 text-danger font-medium hover:bg-danger/5 transition">
+                    <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
                     </svg>
-                    <span class="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-primary rounded-full"></span>
+                    Logout
                 </button>
-
-                <div class="text-right leading-tight">
-                    <p class="font-semibold text-secondary text-sm">{{ auth()->user()->name }}</p>
-                    <p class="text-xs text-slate-400">{{ auth()->user()->isAdmin() ? 'Admin' : 'Mahasiswa' }}</p>
-                </div>
-
-                <div class="w-9 h-9 rounded-full bg-secondary text-white flex items-center justify-center font-semibold text-sm shrink-0">
-                    {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
-                </div>
-            </header>
+            </form>
+        </div>
+    </div>
+</header>
 
             {{-- Konten halaman — INI yang scroll --}}
             <main class="flex-1 overflow-y-auto p-8">
