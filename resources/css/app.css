@@ -1,19 +1,26 @@
-@import 'tailwindcss';
+@import "tailwindcss";
 
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';
 
-
 @theme {
-  --color-primary: #C8102E;
-  --color-secondary: #1E293B;
-  --color-background: #F8FAFC;
-  --color-surface: #FFFFFF;
-  --color-success: #10B981;
-  --color-warning: #F59E0B;
-  --color-danger: #EF4444;
+    --color-primary: #FE0000;
+    --color-secondary: #1A2848;
+    --color-background: #F9FAFB;
+    --color-surface: #ffffff;
+    --color-success: #10B981;
+    --color-warning: #F59E0B;
+    --color-danger: #DC2626;
 
-  --color-accent: #F97316;        /* teks badge */
-  --color-accent-bg: #FFEDD5;     /* background badge */
+    --color-category: #1A2742;
+    --color-category-bg: #F4A261;
+
+    /* background badge */
+    --color-info: #3B82F6;
+      
+    --color-primary-dark: #A10303;
 }
-[x-cloak] { display: none !important; }
+
+[x-cloak] {
+    display: none !important;
+}

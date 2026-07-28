@@ -15,13 +15,15 @@ class Transaction extends Model
 {
     protected $fillable = [
         'loan_request_id', 'user_id', 'item_id', 'start_date', 'end_date', 'returned_at',
-        'purpose', 'quantity', 'status', 'total_fee', 'document_path',
+        'purpose', 'quantity', 'status', 'total_fee', 'document_path','return_photo', 
+        'return_note', 'return_requested_at',
     ];
 
     protected $casts = [
         'start_date'  => 'date',
         'end_date'    => 'date',
         'returned_at' => 'date',
+        'return_requested_at' => 'datetime',
     ];
 
     public function loanRequest()

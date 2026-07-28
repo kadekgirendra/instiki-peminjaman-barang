@@ -35,7 +35,8 @@
     </div>
 
     {{-- Quick Action --}}
-    <div class="bg-primary rounded-2xl p-8 flex items-center justify-between relative overflow-hidden">
+    <div class="rounded-2xl p-8 flex items-center justify-between relative overflow-hidden"
+     style="background: linear-gradient(135deg, #FE0000 0%, #A10303 100%);">
         <div>
             <h2 class="text-white text-xl font-bold mb-2">Quick Action</h2>
             <p class="text-white/80 mb-5">Jelajahi katalog dan pinjam barang secara instan.</p>

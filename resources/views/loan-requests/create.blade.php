@@ -2,17 +2,21 @@
     <div x-data="{
             showCatalogModal: false,
             showQtyModal: false,
+            showConfirmModal: false,
             selectedItem: null,
             quantity: 1,
             search: '',
             category: 'all',
+            startDate: '',
+            endDate: '',
             catalogItems: {{ Illuminate\Support\Js::from($catalogItems->map(fn($i) => [
-    'id' => $i->id,
-    'name' => $i->name,
-    'category' => $i->category,
-    'stock' => $i->available_stock,
-    'image' => $i->image,
-])) }},
+                'id' => $i->id,
+                'name' => $i->name,
+                'category' => $i->category,
+                'stock' => $i->available_stock,
+                'image' => $i->image,
+            ])) }},
+            cartItemNames: {{ Illuminate\Support\Js::from($cartItems->pluck('name')) }},
             get filteredItems() {
                 return this.catalogItems.filter(i =>
                     (this.category === 'all' || i.category === this.category) &&
@@ -24,6 +28,11 @@
                 this.quantity = 1;
                 this.showCatalogModal = false;
                 this.showQtyModal = true;
+            },
+            formatDate(dateStr) {
+                if (!dateStr) return '-';
+                const d = new Date(dateStr);
+                return d.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
             }
          }">
 
@@ -41,112 +50,100 @@
 
             {{-- Form utama --}}
             <div class="lg:col-span-2 bg-surface rounded-2xl shadow-sm p-6">
-                <form method="POST" action="{{ route('loan-requests.store') }}" enctype="multipart/form-data"
-                    class="space-y-6">
+                <form method="POST" action="{{ route('loan-requests.store') }}" enctype="multipart/form-data" class="space-y-6" id="loanForm">
                     @csrf
 
                     <div class="grid grid-cols-2 gap-4">
                         <div>
                             <label class="block font-semibold text-secondary mb-1">Tanggal Mulai *</label>
-                            <input type="date" name="start_date" value="{{ old('start_date') }}" required
-                                class="w-full px-4 py-2.5 rounded-lg border border-slate-200 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-primary">
+                            <input type="date" name="start_date" x-model="startDate" required
+                                   class="w-full px-4 py-2.5 rounded-lg border border-slate-200 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-primary">
                         </div>
                         <div>
                             <label class="block font-semibold text-secondary mb-1">Tanggal Kembali *</label>
-                            <input type="date" name="end_date" value="{{ old('end_date') }}" required
-                                class="w-full px-4 py-2.5 rounded-lg border border-slate-200 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-primary">
+                            <input type="date" name="end_date" x-model="endDate" required
+                                   class="w-full px-4 py-2.5 rounded-lg border border-slate-200 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-primary">
                         </div>
                     </div>
 
                     <div>
                         <label class="block font-semibold text-secondary mb-1">Catatan (Optional)</label>
                         <textarea name="purpose" rows="4" placeholder="Tambahkan informasi tambahan..."
-                            class="w-full px-4 py-3 rounded-lg border border-slate-200 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-primary">{{ old('purpose') }}</textarea>
+                                  class="w-full px-4 py-3 rounded-lg border border-slate-200 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-primary">{{ old('purpose') }}</textarea>
                     </div>
 
                     <div x-data="{ fileName: null, fileSize: null, isImage: false }">
                         <label class="block font-semibold text-secondary mb-1">Dokumen Pendukung *</label>
 
-                        <label x-show="!fileName" @dragover.prevent @dragleave.prevent @drop.prevent="
-            $refs.documentInput.files = $event.dataTransfer.files;
-            const f = $event.dataTransfer.files[0];
-            fileName = f?.name;
-            fileSize = f?.size;
-            isImage = f?.type.startsWith('image/');
-        " class="flex flex-col items-center justify-center border-2 border-dashed border-slate-300 rounded-xl py-12 cursor-pointer hover:bg-slate-50 transition">
+                        <label
+                            x-show="!fileName"
+                            @dragover.prevent
+                            @dragleave.prevent
+                            @drop.prevent="
+                                $refs.documentInput.files = $event.dataTransfer.files;
+                                const f = $event.dataTransfer.files[0];
+                                fileName = f?.name;
+                                fileSize = f?.size;
+                                isImage = f?.type.startsWith('image/');
+                            "
+                            class="flex flex-col items-center justify-center border-2 border-dashed border-slate-300 rounded-xl py-12 cursor-pointer hover:bg-slate-50 transition">
 
                             <div class="w-12 h-12 bg-slate-200 rounded-full flex items-center justify-center mb-3">
-                                <svg class="w-5 h-5 text-secondary" viewBox="0 0 24 24" fill="none"
-                                    stroke="currentColor" stroke-width="2">
-                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                        d="M12 16V4m0 0L8 8m4-4l4 4M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2" />
+                                <svg class="w-5 h-5 text-secondary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 16V4m0 0L8 8m4-4l4 4M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2"/>
                                 </svg>
                             </div>
 
                             <p class="text-secondary font-medium">Drag & drop your file here, or click to browse</p>
                             <p class="text-slate-400 text-sm mt-1">PDF, JPG, PNG (max 5MB)</p>
 
-                            <input type="file" name="document" required class="hidden" accept=".pdf,.jpg,.jpeg,.png"
-                                x-ref="documentInput" @change="
-                   const f = $event.target.files[0];
-                   fileName = f?.name;
-                   fileSize = f?.size;
-                   isImage = f?.type.startsWith('image/');
-               ">
+                            <input type="file" name="document" required class="hidden"
+                                   accept=".pdf,.jpg,.jpeg,.png"
+                                   x-ref="documentInput"
+                                   @change="
+                                       const f = $event.target.files[0];
+                                       fileName = f?.name;
+                                       fileSize = f?.size;
+                                       isImage = f?.type.startsWith('image/');
+                                   ">
                         </label>
 
-                        {{-- Preview file yang sudah dipilih --}}
                         <div x-show="fileName" x-cloak
-                            class="flex items-center gap-4 border-2 border-success/30 bg-success/5 rounded-xl p-4">
-
-                            {{-- Ikon PDF --}}
-                            <div x-show="!isImage"
-                                class="w-12 h-12 bg-danger/10 rounded-lg flex items-center justify-center shrink-0">
-                                <svg class="w-6 h-6 text-danger" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                    stroke-width="2">
-                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                        d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M14 2v6h6" />
+                             class="flex items-center gap-4 border-2 border-success/30 bg-success/5 rounded-xl p-4">
+                            <div x-show="!isImage" class="w-12 h-12 bg-danger/10 rounded-lg flex items-center justify-center shrink-0">
+                                <svg class="w-6 h-6 text-danger" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M14 2v6h6"/>
                                 </svg>
                             </div>
-
-                            {{-- Ikon Gambar --}}
-                            <div x-show="isImage"
-                                class="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center shrink-0">
-                                <svg class="w-6 h-6 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                    stroke-width="2">
-                                    <rect x="3" y="3" width="18" height="18" rx="2" />
-                                    <circle cx="8.5" cy="8.5" r="1.5" />
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M21 15l-5-5L5 21" />
+                            <div x-show="isImage" class="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center shrink-0">
+                                <svg class="w-6 h-6 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="3" y="3" width="18" height="18" rx="2"/>
+                                    <circle cx="8.5" cy="8.5" r="1.5"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M21 15l-5-5L5 21"/>
                                 </svg>
                             </div>
-
                             <div class="flex-1 min-w-0">
                                 <p class="font-medium text-secondary truncate" x-text="fileName"></p>
-                                <p class="text-sm text-slate-500"
-                                    x-text="fileSize ? (fileSize / 1024).toFixed(0) + ' KB' : ''"></p>
+                                <p class="text-sm text-slate-500" x-text="fileSize ? (fileSize / 1024).toFixed(0) + ' KB' : ''"></p>
                             </div>
-
                             <div class="flex items-center gap-2 shrink-0">
-                                <svg class="w-5 h-5 text-success" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                    stroke-width="2">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                                <svg class="w-5 h-5 text-success" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
                                 </svg>
-
                                 <button type="button"
-                                    @click="fileName = null; fileSize = null; $refs.documentInput.value = ''"
-                                    class="text-slate-400 hover:text-danger">
-                                    <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                        stroke-width="2">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                        @click="fileName = null; fileSize = null; $refs.documentInput.value = ''"
+                                        class="text-slate-400 hover:text-danger">
+                                    <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
                                     </svg>
                                 </button>
                             </div>
                         </div>
                     </div>
 
-                    <button type="submit"
-                        class="w-full bg-primary text-white font-semibold py-3.5 rounded-xl hover:opacity-90 transition">
+                    <button type="button" @click="showConfirmModal = true"
+                            class="w-full bg-primary text-white font-semibold py-3.5 rounded-xl hover:opacity-90 transition">
                         Kirim Permintaan
                     </button>
                 </form>
@@ -155,9 +152,9 @@
             {{-- Sidebar kanan --}}
             <div class="space-y-6">
                 <button type="button" @click="showCatalogModal = true"
-                    class="w-full flex items-center justify-center gap-2 border-2 border-dashed border-primary text-primary font-semibold py-4 rounded-xl hover:bg-primary/5 transition">
+                        class="w-full flex items-center justify-center gap-2 border-2 border-dashed border-primary text-primary font-semibold py-4 rounded-xl hover:bg-primary/5 transition">
                     <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
                     </svg>
                     Tambah Item
                 </button>
@@ -169,14 +166,12 @@
                             <form method="POST" action="{{ route('loan-cart.remove', $cartItem) }}">
                                 @csrf @method('DELETE')
                                 <button type="submit" class="text-slate-400 hover:text-danger">
-                                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                        stroke-width="2">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
                                     </svg>
                                 </button>
                             </form>
                         </div>
-
                         <div class="space-y-3 text-sm">
                             <div class="flex justify-between">
                                 <span class="text-slate-500">Nama Barang :</span>
@@ -192,9 +187,7 @@
                             </div>
                             <div class="flex justify-between items-center">
                                 <span class="text-slate-500">Status:</span>
-                                <span class="bg-success/10 text-success text-xs font-semibold px-3 py-1 rounded-full">
-                                    Tersedia
-                                </span>
+                                <span class="bg-success/10 text-success text-xs font-semibold px-3 py-1 rounded-full">Tersedia</span>
                             </div>
                         </div>
                     </div>
@@ -202,16 +195,15 @@
             </div>
         </div>
 
-        {{-- Modal: Tambah Barang (Katalog) --}}
+        {{-- Modal Tambah Barang --}}
         <div x-show="showCatalogModal" x-cloak
-            class="fixed inset-0 bg-black/40 flex items-center justify-center z-40 p-6">
-            <div class="bg-white rounded-2xl w-full max-w-5xl max-h-[85vh] overflow-y-auto"
-                @click.outside="showCatalogModal = false">
+             class="fixed inset-0 bg-black/40 flex items-center justify-center z-40 p-6">
+            <div class="bg-white rounded-2xl w-full max-w-5xl max-h-[85vh] overflow-y-auto" @click.outside="showCatalogModal = false">
                 <div class="flex items-center justify-between px-8 py-6 border-b border-slate-100">
                     <h2 class="text-2xl font-bold text-primary">Tambah Barang</h2>
                     <button @click="showCatalogModal = false" class="text-slate-400 hover:text-slate-600">
                         <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
                         </svg>
                     </button>
                 </div>
@@ -221,9 +213,9 @@
                         <h3 class="text-xl font-bold text-secondary">Katalog Barang</h3>
                         <div class="flex items-center gap-3">
                             <input type="text" x-model="search" placeholder="Search items..."
-                                class="px-4 py-2.5 w-64 rounded-lg border border-slate-200 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-primary">
+                                   class="px-4 py-2.5 w-64 rounded-lg border border-slate-200 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-primary">
                             <select x-model="category"
-                                class="px-4 py-2.5 rounded-lg border border-slate-200 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-primary">
+                                    class="px-4 py-2.5 rounded-lg border border-slate-200 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-primary">
                                 <option value="all">All Categories</option>
                                 @foreach ($categories as $cat)
                                     <option value="{{ $cat }}">{{ $cat }}</option>
@@ -235,24 +227,19 @@
                     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                         <template x-for="item in filteredItems" :key="item.id">
                             <div class="bg-surface border border-slate-100 rounded-xl p-5">
-                                <div
-                                    class="h-32 bg-slate-100 rounded-lg mb-3 flex items-center justify-center overflow-hidden">
-                                    <img :src="'/storage/' + item.image" x-show="item.image"
-                                        class="h-full w-full object-contain">
+                                <div class="h-32 bg-slate-100 rounded-lg mb-3 flex items-center justify-center overflow-hidden">
+                                    <img :src="'/storage/' + item.image" x-show="item.image" class="h-full w-full object-contain">
                                 </div>
-                                <span
-                                    class="inline-block bg-accent-bg text-accent text-xs font-semibold px-3 py-1 rounded-full mb-2"
-                                    x-text="item.category"></span>
+                                <span class="inline-block bg-category-bg text-category text-xs font-semibold px-3 py-1 rounded-full mb-2" x-text="item.category"></span>
                                 <h4 class="font-semibold text-secondary mb-1" x-text="item.name"></h4>
                                 <p class="text-sm mb-3">
                                     Stock:
-                                    <span :class="item.stock > 0 ? 'text-success' : 'text-danger'" class="font-semibold"
-                                        x-text="item.stock + ' units'"></span>
+                                    <span :class="item.stock > 0 ? 'text-success' : 'text-danger'" class="font-semibold" x-text="item.stock + ' units'"></span>
                                 </p>
                                 <button type="button" @click="item.stock > 0 && openQtyModal(item)"
-                                    :disabled="item.stock === 0"
-                                    :class="item.stock === 0 ? 'bg-slate-200 text-slate-400 cursor-not-allowed' : 'bg-primary text-white'"
-                                    class="w-full font-semibold py-2.5 rounded-lg">
+                                        :disabled="item.stock === 0"
+                                        :class="item.stock === 0 ? 'bg-slate-200 text-slate-400 cursor-not-allowed' : 'bg-primary text-white'"
+                                        class="w-full font-semibold py-2.5 rounded-lg">
                                     Tambah
                                 </button>
                             </div>
@@ -266,8 +253,9 @@
             </div>
         </div>
 
-        {{-- Modal: Jumlah Barang (dipakai bareng untuk barang manapun yang dipilih dari katalog) --}}
-        <div x-show="showQtyModal" x-cloak class="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-6">
+        {{-- Modal Jumlah Barang --}}
+        <div x-show="showQtyModal" x-cloak
+             class="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-6">
             <div class="bg-white rounded-2xl p-8 w-full max-w-sm" @click.outside="showQtyModal = false">
                 <h2 class="text-2xl font-bold text-secondary mb-6">Jumlah Barang</h2>
 
@@ -275,13 +263,12 @@
                     <label class="block font-semibold text-secondary mb-2">Jumlah *</label>
                     <div class="flex items-center gap-3">
                         <button type="button" @click="quantity = Math.max(1, quantity - 1)"
-                            class="w-11 h-11 rounded-lg bg-slate-200 text-secondary font-bold text-lg">−</button>
-                        <div
-                            class="flex-1 text-center bg-white border border-slate-200 rounded-lg py-2.5 font-semibold text-lg">
+                                class="w-11 h-11 rounded-lg bg-slate-200 text-secondary font-bold text-lg">−</button>
+                        <div class="flex-1 text-center bg-white border border-slate-200 rounded-lg py-2.5 font-semibold text-lg">
                             <span x-text="quantity"></span>
                         </div>
                         <button type="button" @click="quantity = Math.min(selectedItem?.stock ?? 1, quantity + 1)"
-                            class="w-11 h-11 rounded-lg bg-primary text-white font-bold text-lg">+</button>
+                                class="w-11 h-11 rounded-lg bg-primary text-white font-bold text-lg">+</button>
                     </div>
                 </div>
 
@@ -291,7 +278,7 @@
 
                 <div class="grid grid-cols-2 gap-3">
                     <button type="button" @click="showQtyModal = false"
-                        class="bg-slate-100 text-secondary font-semibold py-3 rounded-xl">
+                            class="bg-slate-100 text-secondary font-semibold py-3 rounded-xl">
                         Batal
                     </button>
 
@@ -303,6 +290,47 @@
                             Selesai
                         </button>
                     </form>
+                </div>
+            </div>
+        </div>
+
+        {{-- Modal Konfirmasi Peminjaman --}}
+        <div x-show="showConfirmModal" x-cloak
+             class="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-6">
+            <div class="bg-white rounded-2xl p-8 w-full max-w-md text-center" @click.outside="showConfirmModal = false">
+                <div class="w-16 h-16 bg-warning/10 rounded-full flex items-center justify-center mx-auto mb-5">
+                    <svg class="w-7 h-7 text-warning" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="9"/>
+                        <path stroke-linecap="round" d="M12 8v5M12 16h.01"/>
+                    </svg>
+                </div>
+
+                <h2 class="text-2xl font-bold text-secondary mb-2">Konfirmasi Peminjaman</h2>
+                <p class="text-slate-500 mb-6">Apakah anda yakin ingin meminjam barang ini?</p>
+
+                <div class="bg-slate-50 rounded-xl p-5 text-left mb-6">
+                    <p class="font-semibold text-secondary mb-3" x-text="cartItemNames.join(', ')"></p>
+                    <div class="border-t border-slate-200 pt-3 space-y-2 text-sm">
+                        <div class="flex justify-between">
+                            <span class="text-slate-500">Tanggal Peminjaman</span>
+                            <span class="font-medium text-secondary" x-text="formatDate(startDate)"></span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-slate-500">Tanggal Kembali</span>
+                            <span class="font-medium text-secondary" x-text="formatDate(endDate)"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <button type="button" @click="showConfirmModal = false"
+                            class="border border-slate-300 text-secondary font-semibold py-3 rounded-xl">
+                        Batal
+                    </button>
+                    <button type="button" onclick="document.getElementById('loanForm').submit()"
+                            class="bg-primary text-white font-semibold py-3 rounded-xl">
+                        Pinjam
+                    </button>
                 </div>
             </div>
         </div>

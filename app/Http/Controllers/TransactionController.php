@@ -12,20 +12,20 @@ class TransactionController extends Controller
         $userId = Auth::id();
 
         // Barang yang sedang dipinjam (status booked)
-        $activeLoans = Transaction::with('item')
+        $activeLoanGroups = Transaction::with('item', 'loanRequest')
             ->where('user_id', $userId)
             ->where('status', 'booked')
             ->orderByDesc('created_at')
-            ->get();
+            ->get()
+            ->groupBy('loan_request_id');
 
-        // Permintaan yang masih pending atau baru disetujui (belum completed)
         $requests = Transaction::with('item')
             ->where('user_id', $userId)
-            ->whereIn('status', ['pending', 'booked'])
+            ->whereIn('status', ['pending', 'booked', 'rejected'])
             ->orderByDesc('created_at')
             ->get();
 
-        return view('transactions.index', compact('activeLoans', 'requests'));
+        return view('transactions.index', compact('activeLoanGroups', 'requests'));
     }
 
     public function history()
@@ -36,7 +36,8 @@ class TransactionController extends Controller
             ->where('user_id', $userId)
             ->whereIn('status', ['completed', 'rejected'])
             ->orderByDesc('updated_at')
-            ->get();
+            ->get()
+            ->groupBy('loan_request_id');
 
         return view('transactions.history', compact('history'));
     }

@@ -14,20 +14,20 @@ class ItemController extends Controller
     }
 
     public function index(Request $request)
-{
-    $query = Item::query();
+    {
+        $query = Item::query();
 
-    if ($request->filled('search')) {
+        if ($request->filled('search')) {
             $query->where('name', 'like', '%' . $request->search . '%');
-    }
+        }
 
-    if ($request->filled('category') && $request->category !== 'all') {
-            $query->where('category', $request->category);
-    }
+        if ($request->filled('category') && $request->category !== 'all') {
+            $query->where('category', trim($request->category));
+        }
 
-    $items = $query->get();
+        $items = $query->get();
 
-    $items = $items->map(function (Item $item) use ($request) {
+        $items = $items->map(function (Item $item) use ($request) {
             if ($request->filled(['start_date', 'end_date'])) {
                 $item->available_stock = $this->availability->getAvailableStock(
                     $item,
@@ -41,7 +41,12 @@ class ItemController extends Controller
             return $item;
         });
 
-        $categories = Item::select('category')->distinct()->pluck('category');
+        $categories = Item::select('category')
+            ->distinct()
+            ->pluck('category')
+            ->map(fn($c) => trim($c))
+            ->unique()
+            ->values();
 
         return view('items.index', compact('items', 'categories'));
     }

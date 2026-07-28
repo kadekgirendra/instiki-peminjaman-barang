@@ -96,6 +96,11 @@ class LoanRequestController extends Controller
 
         session()->forget('loan_cart');
 
-        return redirect()->route('dashboard')->with('status', 'Permintaan peminjaman berhasil dikirim.');
+        return redirect()->route('transactions.index')->with([
+            'loan_success' => true,
+            'loan_items_summary' => $items->pluck('name')->implode(', '),
+            'loan_start_date' => \Carbon\Carbon::parse($validated['start_date'])->translatedFormat('j F Y'),
+            'loan_end_date' => \Carbon\Carbon::parse($validated['end_date'])->translatedFormat('j F Y'),
+        ]);
     }
 }

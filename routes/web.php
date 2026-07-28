@@ -7,6 +7,7 @@ use App\Http\Controllers\ItemController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\LoanRequestController;
 use App\Http\Controllers\TransactionController;
+use App\Http\Controllers\ReturnController;
 
 Route::middleware('guest')->group(function () {
 
@@ -49,6 +50,9 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/transactions', [TransactionController::class, 'index'])->name('transactions.index');
     Route::get('/transactions/history', [TransactionController::class, 'history'])->name('transactions.history');
+
+    Route::get('/returns/{loanRequest}', [ReturnController::class, 'create'])->name('returns.create');
+    Route::post('/returns/{loanRequest}', [ReturnController::class, 'store'])->name('returns.store');
 
 });
 

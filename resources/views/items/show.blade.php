@@ -14,7 +14,7 @@
 
         {{-- Info barang --}}
         <div x-data="{ showQtyModal: false, quantity: 1, maxStock: {{ $availableStock }} }">
-            <span class="inline-block bg-accent-bg text-accent text-sm font-semibold px-4 py-1.5 rounded-full mb-4">
+            <span class="inline-block bg-category-bg text-category text-sm font-semibold px-4 py-1.5 rounded-full mb-4">
                 {{ $item->category }}
             </span>
 
@@ -29,7 +29,7 @@
                 <div class="flex gap-2">
                     @php $filledSegments = min($availableStock, 5); @endphp
                     @for ($i = 1; $i <= 5; $i++)
-                        <span class="h-2 flex-1 rounded-full {{ $i <= $filledSegments ? 'bg-accent' : 'bg-slate-200' }}"></span>
+                        <span class="h-2 flex-1 rounded-full {{ $i <= $filledSegments ? 'bg-category-bg' : 'bg-slate-200' }}"></span>
                     @endfor
                 </div>
             </div>
