@@ -5,14 +5,30 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
-
-#[Fillable(['user_id', 'item_id', 'start_date', 'end_date',
-    'purpose', 'quantity', 'status', 'total_fee', 'document_path'])]
-
-#[Casts(['start_date' => 'date', 'end_date' => 'date', 'returned_at' => 'date',])]
+/**
+ * @property \Illuminate\Support\Carbon $start_date
+ * @property \Illuminate\Support\Carbon $end_date
+ * @property \Illuminate\Support\Carbon|null $returned_at
+ */
 
 class Transaction extends Model
 {
+    protected $fillable = [
+        'loan_request_id', 'user_id', 'item_id', 'start_date', 'end_date', 'returned_at',
+        'purpose', 'quantity', 'status', 'total_fee', 'document_path',
+    ];
+
+    protected $casts = [
+        'start_date'  => 'date',
+        'end_date'    => 'date',
+        'returned_at' => 'date',
+    ];
+
+    public function loanRequest()
+    {
+        return $this->belongsTo(LoanRequest::class);
+    }
+
     public function user()
     {
         return $this->belongsTo(User::class);
@@ -33,7 +49,7 @@ class Transaction extends Model
     public function scopeOverlapping($query, string $startDate, string $endDate)
     {
         return $query->where('start_date', '<=', $endDate)
-                    ->where('end_date', '>=', $startDate);
+            ->where('end_date', '>=', $startDate);
     }
     public function getIsOverdueAttribute(): bool
     {

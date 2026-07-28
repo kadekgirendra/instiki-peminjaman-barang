@@ -1,0 +1,53 @@
+<x-app-layout>
+    <h1 class="text-2xl font-bold text-secondary mb-6">Dashboard</h1>
+
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8">
+        <div class="bg-surface rounded-xl shadow-sm p-6">
+            <div class="w-11 h-11 bg-slate-100 rounded-lg flex items-center justify-center mb-4">
+                <svg class="w-5 h-5 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+                </svg>
+            </div>
+            <p class="text-3xl font-bold text-secondary">{{ $activeLoans }}</p>
+            <p class="text-slate-500 text-sm mt-1">Pinjaman Aktif</p>
+        </div>
+
+        <div class="bg-surface rounded-xl shadow-sm p-6">
+            <div class="w-11 h-11 bg-warning/10 rounded-lg flex items-center justify-center mb-4">
+                <svg class="w-5 h-5 text-warning" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="9"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 7v5l3 3"/>
+                </svg>
+            </div>
+            <p class="text-3xl font-bold text-secondary">{{ $pendingRequests }}</p>
+            <p class="text-slate-500 text-sm mt-1">Permintaan Tertunda</p>
+        </div>
+
+        <div class="bg-surface rounded-xl shadow-sm p-6">
+            <div class="w-11 h-11 bg-primary/10 rounded-lg flex items-center justify-center mb-4">
+                <svg class="w-5 h-5 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+            </div>
+            <p class="text-3xl font-bold text-secondary">{{ $totalHistory }}</p>
+            <p class="text-slate-500 text-sm mt-1">Total History</p>
+        </div>
+    </div>
+
+    {{-- Quick Action --}}
+    <div class="bg-primary rounded-2xl p-8 flex items-center justify-between relative overflow-hidden">
+        <div>
+            <h2 class="text-white text-xl font-bold mb-2">Quick Action</h2>
+            <p class="text-white/80 mb-5">Jelajahi katalog dan pinjam barang secara instan.</p>
+            <a href="{{ route('items.index') }}"
+               class="inline-block bg-white text-primary font-semibold px-6 py-2.5 rounded-lg">
+                Pinjam Barang
+            </a>
+        </div>
+        <div class="w-14 h-14 bg-white/20 rounded-full flex items-center justify-center shrink-0">
+            <svg class="w-6 h-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+            </svg>
+        </div>
+    </div>
+</x-app-layout>

@@ -9,27 +9,48 @@ use Carbon\Carbon;
 
 class ItemController extends Controller
 {
-    public function __construct(protected AvailabilityService $availability) {}
+    public function __construct(protected AvailabilityService $availability)
+    {
+    }
 
     public function index(Request $request)
-    {
-        $items = Item::query();
+{
+    $query = Item::query();
 
-        // Filter ketersediaan berdasarkan rentang tanggal (PRD poin 5A)
-        if ($request->filled(['start_date', 'end_date'])) {
-            $items = $items->get()->filter(function ($item) use ($request) {
-                return $this->availability->isAvailable($item, $request->start_date, $request->end_date);
-            });
-        } else {
-            $items = $items->get();
-        }
+    if ($request->filled('search')) {
+            $query->where('name', 'like', '%' . $request->search . '%');
+    }
 
-        return view('items.index', compact('items'));
+    if ($request->filled('category') && $request->category !== 'all') {
+            $query->where('category', $request->category);
+    }
+
+    $items = $query->get();
+
+    $items = $items->map(function (Item $item) use ($request) {
+            if ($request->filled(['start_date', 'end_date'])) {
+                $item->available_stock = $this->availability->getAvailableStock(
+                    $item,
+                    $request->start_date,
+                    $request->end_date
+                );
+            } else {
+                $item->available_stock = $item->total_stock;
+            }
+
+            return $item;
+        });
+
+        $categories = Item::select('category')->distinct()->pluck('category');
+
+        return view('items.index', compact('items', 'categories'));
     }
 
     public function show(Item $item)
     {
-        return view('items.show', compact('item'));
+        $availableStock = $item->total_stock;
+
+        return view('items.show', compact('item', 'availableStock'));
     }
 
     /**
