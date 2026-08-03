@@ -30,15 +30,17 @@ class LoanRequestController extends Controller
             return $item;
         });
 
-        // Barang yang BELUM ada di keranjang — untuk modal "Tambah Item"
-        $catalogItems = Item::whereNotIn('id', array_keys($cart))->get()->map(function ($item) {
+        $catalogItems = Item::all()->map(function ($item) use ($cart) {
             $item->available_stock = $item->total_stock;
+            $item->cart_quantity = $cart[$item->id] ?? 0;
             return $item;
         });
 
         $categories = Item::select('category')->distinct()->pluck('category');
 
-        return view('loan-requests.create', compact('cartItems', 'catalogItems', 'categories'));
+        $prefillDates = session('loan_prefill_dates', ['start_date' => null, 'end_date' => null]);
+
+        return view('loan-requests.create', compact('cartItems', 'catalogItems', 'categories', 'prefillDates'));
     }
 
     public function store(Request $request)
