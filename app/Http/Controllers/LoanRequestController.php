@@ -39,7 +39,7 @@ class LoanRequestController extends Controller
         $categories = Item::select('category')->distinct()->pluck('category');
 
         $prefillDates = session('loan_prefill_dates', ['start_date' => null, 'end_date' => null]);
-
+        
         return view('loan-requests.create', compact('cartItems', 'catalogItems', 'categories', 'prefillDates'));
     }
 

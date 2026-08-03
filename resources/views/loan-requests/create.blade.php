@@ -7,8 +7,8 @@
             quantity: 1,
             search: '',
             category: 'all',
-            startDate: '',
-            endDate: '',
+            startDate: '{{ $prefillDates['start_date'] }}',
+            endDate: '{{ $prefillDates['end_date'] }}',
             fileName: null,
             fileSize: null,
             isImage: false,
@@ -58,7 +58,12 @@
             'Accept': 'application/json',
             'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content,
         },
-        body: JSON.stringify({ item_id: this.selectedItem.id, quantity: this.quantity }),
+        body: JSON.stringify({
+            item_id: this.selectedItem.id,
+            quantity: this.quantity,
+            start_date: this.startDate,
+            end_date: this.endDate,
+        }),
     });
 
     if (! res.ok) {
