@@ -229,6 +229,12 @@
                             <div x-show="selected.status === 'booked'" class="border-t border-slate-100 pt-6">
                                 <h4 class="font-semibold text-secondary mb-4">Tandai Selesai</h4>
 
+                                <div x-show="selected.is_overdue"
+                                    class="bg-danger/5 border border-danger/20 rounded-xl px-4 py-3 mb-4 text-xs text-danger font-medium">
+                                    <span
+                                        x-text="'Barang ini sudah telat ' + selected.days_late + ' hari dari tanggal pengembalian.'"></span>
+                                </div>
+
                                 <div x-show="selected.has_return_request"
                                     class="bg-info/5 border border-info/20 rounded-xl px-4 py-3 mb-4 text-xs text-info">
                                     Mahasiswa sudah mengajukan pengembalian. Cek bukti di bawah sebelum menandai

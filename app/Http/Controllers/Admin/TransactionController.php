@@ -70,6 +70,19 @@ class TransactionController extends Controller
                 'rejected'  => ['label' => 'Ditolak',   'badge' => 'bg-danger/10 text-danger'],
             ][$status] ?? ['label' => $status, 'badge' => 'bg-slate-100 text-slate-500'];
 
+            // "Terlambat" bukan status tersendiri di database — barangnya tetap 'booked'
+            // (masih dianggap dipinjam), cuma labelnya diganti kalau end_date sudah lewat.
+            // Ini murni tampilan, tidak mengubah $status supaya tombol "Selesaikan" & logic
+            // approve/reject/complete tetap jalan seperti biasa.
+            $daysLate = null;
+            if ($status === 'booked' && $loanRequest->end_date->isPast()) {
+                $daysLate = (int) $loanRequest->end_date->diffInDays(now());
+                $statusMeta = [
+                    'label' => 'Terlambat ' . $daysLate . ' hari',
+                    'badge' => 'bg-danger/10 text-danger',
+                ];
+            }
+
             return [
                 'loan_request_id'      => $loanRequest->id,
                 'user_name'            => $user->name,
@@ -83,6 +96,8 @@ class TransactionController extends Controller
                 'status'               => $status,
                 'status_label'         => $statusMeta['label'],
                 'status_badge'         => $statusMeta['badge'],
+                'is_overdue'           => $daysLate !== null,
+                'days_late'            => $daysLate,
                 'catatan'              => $loanRequest->purpose,
                 'document_url'         => $documentUrl,
                 'document_name'        => $documentName,

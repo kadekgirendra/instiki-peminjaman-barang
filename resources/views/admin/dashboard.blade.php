@@ -106,7 +106,7 @@
                                     <td class="py-3 pr-4 text-slate-600">{{ $activity->item_name }}</td>
                                     <td class="py-3 pr-4">
                                         @if ($activity->is_return)
-                                            <span class="inline-flex items-center gap-1 bg-success/10 text-success text-xs font-semibold px-3 py-1 rounded-full">
+                                            <span class="text-center inline-flex items-center gap-1 bg-success/10 text-success text-xs font-semibold px-3 py-1 rounded-full">
                                                 <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                                                     <path stroke-linecap="round" stroke-linejoin="round" d="M7 7l10 10M17 7v10H7"/>
                                                 </svg>
