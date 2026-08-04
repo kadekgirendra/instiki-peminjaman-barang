@@ -198,4 +198,58 @@
             @endif
         </div>
     </div>
+
+    {{-- Grafik Tren Peminjaman (TAMBAHAN BARU) --}}
+    <div class="bg-surface rounded-2xl shadow-sm p-6 mb-6 mt-6">
+        <h2 class="font-bold text-secondary mb-4">Tren Peminjaman (7 Hari Terakhir)</h2>
+        <div x-data="loanTrendChart()" x-init="initChart()" class="relative h-[280px] w-full">
+            <canvas id="trendChart"></canvas>
+        </div>
+    </div>
+
+    {{-- Script untuk Chart (TAMBAHAN BARU) --}}
+    @push('scripts')
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <script>
+            document.addEventListener('alpine:init', () => {
+                Alpine.data('loanTrendChart', () => ({
+                    initChart() {
+                        const ctx = document.getElementById('trendChart').getContext('2d');
+                        
+                        const labels = @json($chartLabels);
+                        const data = @json($chartData);
+
+                        new Chart(ctx, {
+                            type: 'line',
+                            data: {
+                                labels: labels,
+                                datasets: [{
+                                    label: 'Jumlah Peminjaman',
+                                    data: data,
+                                    borderColor: '#FE0000', // Sesuai warna --color-primary
+                                    backgroundColor: 'rgba(254, 0, 0, 0.1)',
+                                    borderWidth: 2,
+                                    fill: true,
+                                    tension: 0.4
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                plugins: {
+                                    legend: { display: false }
+                                },
+                                scales: {
+                                    y: {
+                                        beginAtZero: true,
+                                        ticks: { stepSize: 1 }
+                                    }
+                                }
+                            }
+                        });
+                    }
+                }));
+            });
+        </script>
+    @endpush
 </x-admin-layout>

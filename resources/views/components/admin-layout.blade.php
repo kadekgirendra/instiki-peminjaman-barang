@@ -7,6 +7,7 @@
   <title>{{ $title ?? 'Sistem Peminjaman Barang Kampus INSTIKI' }}</title>
   @vite(['resources/css/app.css', 'resources/js/app.js'])
   @stack('styles')
+  @stack('scripts')
 </head>
 
 <body class="bg-background">
@@ -37,8 +38,9 @@
           @foreach ($navItems as $item)
             @continue (!\Illuminate\Support\Facades\Route::has($item['route']))
             @php $isActive = request()->routeIs($item['route']); @endphp
-            <a href="{{ route($item['route']) }}" class="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition
-                                          {{ $isActive ? 'bg-primary text-white' : 'text-slate-300 hover:bg-white/5' }}">
+            <a href="{{ route($item['route']) }}"
+              class="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition
+                                            {{ $isActive ? 'bg-primary text-white' : 'text-slate-300 hover:bg-white/5' }}">
 
               @if ($item['icon'] === 'grid')
                 <svg class="w-5 h-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
