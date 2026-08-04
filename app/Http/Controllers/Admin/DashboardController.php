@@ -84,6 +84,19 @@ class DashboardController extends Controller
                 ];
             });
 
+        // ── Data Grafik Tren Peminjaman (7 Hari Terakhir) ──────
+        $chartLabels = [];
+        $chartData = [];
+
+        for ($i = 6; $i >= 0; $i--) {
+            $date = now()->subDays($i);
+            $chartLabels[] = $date->translatedFormat('d M'); // Cth: 28 Jul
+
+            // Hitung transaksi peminjaman di tanggal tersebut
+            $count = Transaction::whereDate('start_date', $date->toDateString())->count();
+            $chartData[] = $count;
+        }
+
         return view('admin.dashboard', compact(
             'totalItems',
             'totalItemsDelta',
@@ -94,7 +107,9 @@ class DashboardController extends Controller
             'totalRevenue',
             'totalRevenueDelta',
             'recentActivities',
-            'overdueReturns'
+            'overdueReturns',
+            'chartLabels',
+            'chartData'
         ));
     }
 
