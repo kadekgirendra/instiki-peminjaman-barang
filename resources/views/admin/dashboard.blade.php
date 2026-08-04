@@ -5,10 +5,11 @@
     </div>
 
     {{-- Stat Cards --}}
-    <div class="grid grid-cols-1 sm:grid-cols-3 gap-5 mb-6">
+    <div class="grid grid-cols-1 sm:grid-cols-4 gap-5 mb-6">
 
         {{-- Total Barang --}}
-        <div class="bg-surface rounded-2xl shadow-sm p-6">
+        <a href="{{ route('admin.items.index') }}"
+            class="bg-surface rounded-2xl shadow-sm p-6 block hover:shadow-md hover:-translate-y-0.5 transition">
             <div class="flex items-start justify-between">
                 <p class="text-sm text-slate-500">Total Barang</p>
                 <div class="w-10 h-10 bg-secondary rounded-xl flex items-center justify-center shrink-0">
@@ -28,10 +29,11 @@
                     dari bulan lalu
                 </p>
             @endif
-        </div>
+        </a>
 
         {{-- Pinjaman Aktif --}}
-        <div class="bg-surface rounded-2xl shadow-sm p-6">
+        <a href="{{ route('admin.transactions.index', ['status' => 'booked']) }}"
+            class="bg-surface rounded-2xl shadow-sm p-6 block hover:shadow-md hover:-translate-y-0.5 transition">
             <div class="flex items-start justify-between">
                 <p class="text-sm text-slate-500">Pinjaman Aktif</p>
                 <div class="w-10 h-10 bg-primary rounded-xl flex items-center justify-center shrink-0">
@@ -50,10 +52,11 @@
                     dari bulan lalu
                 </p>
             @endif
-        </div>
+        </a>
 
         {{-- Permintaan Tertunda --}}
-        <div class="bg-surface rounded-2xl shadow-sm p-6">
+        <a href="{{ route('admin.transactions.index', ['status' => 'pending']) }}"
+            class="bg-surface rounded-2xl shadow-sm p-6 block hover:shadow-md hover:-translate-y-0.5 transition">
             <div class="flex items-start justify-between">
                 <p class="text-sm text-slate-500">Permintaan Tertunda</p>
                 <div class="w-10 h-10 bg-warning rounded-xl flex items-center justify-center shrink-0">
@@ -67,13 +70,38 @@
             <p class="text-3xl font-bold text-secondary mt-3">{{ $permintaanTertunda }}</p>
             @if ($permintaanTertundaDelta !== null)
                 <p class="text-xs text-slate-400 mt-2">
-                    <span class="{{ $permintaanTertundaDelta >= 0 ? 'text-danger' : 'text-success' }} font-semibold">
+                    <span class="{{ $permintaanTertundaDelta >= 0 ? 'text-success' : 'text-danger' }} font-semibold">
                         {{ $permintaanTertundaDelta >= 0 ? '+' : '' }}{{ $permintaanTertundaDelta }}%
+                    </span>
+                    dari minggu lalu
+                </p>
+            @endif
+        </a>
+
+        {{-- Total Pendapatan --}}
+        <a href="{{ route('admin.transactions.index', ['status' => 'completed']) }}"
+            class="bg-surface rounded-2xl shadow-sm p-6 block hover:shadow-md hover:-translate-y-0.5 transition">
+            <div class="flex items-start justify-between">
+                <p class="text-sm text-slate-500">Total Pendapatan</p>
+                <div class="w-10 h-10 bg-success rounded-xl flex items-center justify-center shrink-0">
+                    <svg class="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v8m-3-3.5c0 1.1 1.34 2 3 2s3-.9 3-2-1.34-2-3-2-3-.9-3-2 1.34-2 3-2 3 .9 3 2"/>
+                        <circle cx="12" cy="12" r="9"/>
+                    </svg>
+                </div>
+            </div>
+            <p class="text-3xl font-bold text-secondary mt-3">Rp{{ number_format($totalRevenue, 0, ',', '.') }}</p>
+            @if ($totalRevenueDelta !== null)
+                <p class="text-xs text-slate-400 mt-2">
+                    <span class="{{ $totalRevenueDelta >= 0 ? 'text-success' : 'text-danger' }} font-semibold">
+                        {{ $totalRevenueDelta >= 0 ? '+' : '' }}{{ $totalRevenueDelta }}%
                     </span>
                     dari bulan lalu
                 </p>
+            @else
+                <p class="text-xs text-slate-400 mt-2">dari denda keterlambatan</p>
             @endif
-        </div>
+        </a>
     </div>
 
     {{-- Aktivitas Terkini + Pengembalian Terlambat --}}
@@ -81,7 +109,11 @@
 
         {{-- Aktivitas Terkini --}}
         <div class="lg:col-span-2 bg-surface rounded-2xl shadow-sm p-6">
-            <h2 class="font-bold text-secondary mb-4">Aktivitas Terkini</h2>
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="font-bold text-secondary">Aktivitas Terkini</h2>
+                <a href="{{ route('admin.transactions.index') }}"
+                    class="text-xs font-semibold text-info hover:underline">Lihat semua &rarr;</a>
+            </div>
 
             @if ($recentActivities->isEmpty())
                 <p class="text-sm text-slate-400 py-6 text-center">Belum ada aktivitas.</p>
@@ -132,12 +164,16 @@
 
         {{-- Pengembalian Terlambat --}}
         <div class="bg-surface rounded-2xl shadow-sm p-6">
-            <h2 class="font-bold text-secondary mb-4 flex items-center gap-2">
-                <svg class="w-4.5 h-4.5 text-warning" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v4m0 4h.01M10.29 3.86l-8.18 14.18A1.5 1.5 0 003.5 20.5h17a1.5 1.5 0 001.39-2.46L13.71 3.86a1.5 1.5 0 00-2.42 0z"/>
-                </svg>
-                Pengembalian Terlambat
-            </h2>
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="font-bold text-secondary flex items-center gap-2">
+                    <svg class="w-4.5 h-4.5 text-warning" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v4m0 4h.01M10.29 3.86l-8.18 14.18A1.5 1.5 0 003.5 20.5h17a1.5 1.5 0 001.39-2.46L13.71 3.86a1.5 1.5 0 00-2.42 0z"/>
+                    </svg>
+                    Pengembalian Terlambat
+                </h2>
+                <a href="{{ route('admin.transactions.index', ['status' => 'late']) }}"
+                    class="text-xs font-semibold text-info hover:underline shrink-0">Lihat semua &rarr;</a>
+            </div>
 
             @if ($overdueReturns->isEmpty())
                 <p class="text-sm text-slate-400 py-6 text-center">Tidak ada pengembalian yang telat.</p>

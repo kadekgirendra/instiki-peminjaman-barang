@@ -144,7 +144,31 @@ class TransactionController extends Controller
             ];
         })->values();
 
-        return view('admin.transactions.index', compact('groups'));
+        // Hitung jumlah per tab DARI GROUP LENGKAP (sebelum difilter) — dipakai buat
+        // badge angka di tab filter. "late" itu bukan status di DB, cuma subset dari
+        // 'booked' yang end_date-nya udah lewat (is_overdue true).
+        $tabCounts = [
+            'all'       => $groups->count(),
+            'pending'   => $groups->where('status', 'pending')->count(),
+            'booked'    => $groups->where('status', 'booked')->count(),
+            'late'      => $groups->where('status', 'booked')->where('is_overdue', true)->count(),
+            'completed' => $groups->where('status', 'completed')->count(),
+            'rejected'  => $groups->where('status', 'rejected')->count(),
+        ];
+
+        // Filter opsional dari query string ?status=pending|booked|late|completed|rejected
+        // — dipakai kartu Dashboard (misal "Pinjaman Aktif" -> ?status=booked) DAN tab
+        // filter di halaman ini sendiri. 'late' = booked yang sudah lewat end_date saja
+        // (bukan semua booked), dipakai link "Pengembalian Terlambat" dari Dashboard.
+        $statusFilter = $request->get('status');
+
+        if ($statusFilter === 'late') {
+            $groups = $groups->where('status', 'booked')->where('is_overdue', true)->values();
+        } elseif ($statusFilter) {
+            $groups = $groups->where('status', $statusFilter)->values();
+        }
+
+        return view('admin.transactions.index', compact('groups', 'statusFilter', 'tabCounts'));
     }
 
     public function approve(LoanRequest $loanRequest)

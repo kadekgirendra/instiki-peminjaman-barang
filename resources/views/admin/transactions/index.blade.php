@@ -1,13 +1,16 @@
 <x-admin-layout title="Permintaan">
     <div x-data="{ selected: null }">
 
-        <div class="flex items-start justify-between flex-wrap gap-4 mb-6">
+        <div class="flex items-start justify-between flex-wrap gap-4 mb-5">
             <div>
                 <h1 class="text-2xl font-bold text-secondary">Permintaan</h1>
                 <p class="text-slate-500 text-sm mt-0.5">Kelola permintaan peminjaman dari mahasiswa dan dosen</p>
             </div>
 
             <form method="GET">
+                @if ($statusFilter)
+                    <input type="hidden" name="status" value="{{ $statusFilter }}">
+                @endif
                 <div class="relative">
                     <svg class="w-4 h-4 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2" viewBox="0 0 24 24"
                         fill="none" stroke="currentColor" stroke-width="2">
@@ -19,6 +22,34 @@
                         class="pl-10 pr-4 py-2.5 w-64 rounded-full border-0 bg-white shadow-sm text-sm focus:outline-none focus:ring-2 focus:ring-primary/30">
                 </div>
             </form>
+        </div>
+
+        {{-- Tab filter status --}}
+        @php
+            $tabs = [
+                '' => ['label' => 'Semua', 'count' => $tabCounts['all']],
+                'pending' => ['label' => 'Tertunda', 'count' => $tabCounts['pending'],],
+                'booked' => ['label' => 'Disetujui', 'count' => $tabCounts['booked']],
+                'late' => ['label' => 'Terlambat', 'count' => $tabCounts['late']],
+                'completed' => ['label' => 'Selesai', 'count' => $tabCounts['completed']],
+                'rejected' => ['label' => 'Ditolak', 'count' => $tabCounts['rejected']],
+            ];
+        @endphp
+        <div class="flex items-center gap-2 mb-6 overflow-x-auto pb-1">
+            @foreach ($tabs as $value => $tab)
+                @php
+                    $isActive = $statusFilter === $value || (!$statusFilter && $value === '');
+                    $query = array_filter(['status' => $value ?: null, 'search' => request('search')]);
+                @endphp
+                <a href="{{ route('admin.transactions.index', $query) }}"
+                    class="shrink-0 flex items-center gap-1.5 text-sm font-semibold px-4 py-2 rounded-full transition
+                                    {{ $isActive ? 'bg-secondary text-white' : 'bg-white text-slate-500 hover:bg-slate-100' }}">
+                    {{ $tab['label'] }}
+                    <span class="text-xs px-1.5 py-0.5 rounded-full {{ $isActive ? 'bg-white/20' : 'bg-slate-100' }}">
+                        {{ $tab['count'] }}
+                    </span>
+                </a>
+            @endforeach
         </div>
 
         @if (session('success'))

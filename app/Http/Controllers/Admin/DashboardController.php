@@ -27,10 +27,24 @@ class DashboardController extends Controller
 
         // ── Permintaan Tertunda ────────────────────────────────
         $permintaanTertunda = Transaction::where('status', 'pending')->count();
-        $permintaanTertundaBulanLalu = Transaction::where('created_at', '<=', now()->subMonth())
-            ->where('status', 'pending')
-            ->count();
-        $permintaanTertundaDelta = $this->percentChange($permintaanTertundaBulanLalu, $permintaanTertunda);
+        // Dulu ini dibandingkan ke jumlah yang MASIH pending & dibuat > sebulan lalu —
+        // hampir selalu 0 karena permintaan pending biasa langsung diproses admin,
+        // jadi delta-nya gak informatif. Diganti jadi tren VOLUME permintaan masuk
+        // (semua status, bukan cuma yang masih pending) minggu ini vs minggu lalu —
+        // ini yang sebenarnya mau dilihat admin: "permintaan masuk lagi naik/turun?"
+        $permintaanMingguIni = Transaction::where('created_at', '>=', now()->subDays(7))->count();
+        $permintaanMingguLalu = Transaction::whereBetween('created_at', [now()->subDays(14), now()->subDays(7)])->count();
+        $permintaanTertundaDelta = $this->percentChange($permintaanMingguLalu, $permintaanMingguIni);
+
+        // ── Total Pendapatan (dari denda saja) ─────────────────
+        // WAJIB pakai scope revenueEligible (booked/completed) — pending/rejected
+        // tidak boleh ikut kehitung. Scope ini sudah ada dari fase sebelumnya tapi
+        // belum pernah dipakai di mana pun.
+        $totalRevenue = Transaction::revenueEligible()->sum('total_fee');
+        $totalRevenueBulanLalu = Transaction::revenueEligible()
+            ->whereBetween('returned_at', [now()->subMonth()->startOfMonth(), now()->subMonth()->endOfMonth()])
+            ->sum('total_fee');
+        $totalRevenueDelta = $this->percentChange((int) $totalRevenueBulanLalu, (int) $totalRevenue);
 
         // ── Aktivitas Terkini ──────────────────────────────────
         $recentActivities = Transaction::with(['item', 'user'])
@@ -77,6 +91,8 @@ class DashboardController extends Controller
             'pinjamanAktifDelta',
             'permintaanTertunda',
             'permintaanTertundaDelta',
+            'totalRevenue',
+            'totalRevenueDelta',
             'recentActivities',
             'overdueReturns'
         ));
