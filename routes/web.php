@@ -8,6 +8,7 @@ use App\Http\Controllers\CartController;
 use App\Http\Controllers\LoanRequestController;
 use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\ReturnController;
+use App\Http\Controllers\Admin;
 
 Route::middleware('guest')->group(function () {
 
@@ -18,7 +19,6 @@ Route::middleware('guest')->group(function () {
     // Login
     Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
     Route::post('/login', [AuthController::class, 'login']);
-
 });
 
 Route::middleware('auth')->group(function () {
@@ -41,7 +41,7 @@ Route::middleware('auth')->group(function () {
     // Data Kalender Ketersediaan Barang
     Route::get('/items/{item}/calendar-data', [ItemController::class, 'calendarData'])
         ->name('items.calendar-data');
-    
+
     Route::post('/loan-cart/add', [CartController::class, 'add'])->name('loan-cart.add');
     Route::delete('/loan-cart/{item}', [CartController::class, 'remove'])->name('loan-cart.remove');
 
@@ -53,7 +53,6 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/returns/{loanRequest}', [ReturnController::class, 'create'])->name('returns.create');
     Route::post('/returns/{loanRequest}', [ReturnController::class, 'store'])->name('returns.store');
-
 });
 
 /*
@@ -65,15 +64,28 @@ Route::middleware('auth')->group(function () {
 |--------------------------------------------------------------------------
 */
 
-/*
+
 Route::middleware(['auth', 'admin'])
     ->prefix('admin')
     ->name('admin.')
     ->group(function () {
 
-        Route::get('/dashboard', function () {
-            return view('admin.dashboard');
-        })->name('dashboard');
+        Route::get('/dashboard', [Admin\DashboardController::class, 'index'])
+            ->name('dashboard');
 
+        Route::get('/transactions', [Admin\TransactionController::class, 'index'])
+            ->name('transactions.index');
+        Route::patch('/loan-requests/{loanRequest}/approve', [Admin\TransactionController::class, 'approve'])
+            ->name('loan-requests.approve');
+        Route::patch('/loan-requests/{loanRequest}/reject', [Admin\TransactionController::class, 'reject'])
+            ->name('loan-requests.reject');
+        Route::patch('/loan-requests/{loanRequest}/complete', [Admin\TransactionController::class, 'complete'])
+            ->name('loan-requests.complete');
+
+        Route::resource('items', Admin\ItemController::class);
+
+        Route::get('/laporan', [Admin\ReportController::class, 'index'])->name('reports.index');
+        Route::get('/laporan/export', [Admin\ReportController::class, 'export'])->name('reports.export');
+
+        Route::get('/kalender', [Admin\CalendarController::class, 'index'])->name('calendar');
     });
-*/

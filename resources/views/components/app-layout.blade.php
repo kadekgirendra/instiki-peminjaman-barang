@@ -34,8 +34,9 @@
 
                 @foreach ($navItems as $item)
                     @php $isActive = request()->routeIs($item['route']); @endphp
-                    <a href="{{ route($item['route']) }}" class="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition
-                                      {{ $isActive ? 'bg-primary text-white' : 'text-slate-300 hover:bg-white/5' }}">
+                    <a href="{{ route($item['route']) }}"
+                        class="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition
+                                              {{ $isActive ? 'bg-primary text-white' : 'text-slate-300 hover:bg-white/5' }}">
 
                         @if ($item['icon'] === 'grid')
                             <svg class="w-5 h-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -228,7 +229,7 @@
             @foreach ($navItems as $item)
                 @php $isActive = request()->routeIs($item['route']); @endphp
                 <a href="{{ route($item['route']) }}" aria-label="{{ $item['label'] }}" class="flex flex-col items-center gap-1 px-3 py-1.5 rounded-lg transition
-                                  {{ $isActive ? 'text-primary' : 'text-slate-400 hover:text-white' }}">
+                                          {{ $isActive ? 'text-primary' : 'text-slate-400 hover:text-white' }}">
 
                     @if ($item['icon'] === 'grid')
                         <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">

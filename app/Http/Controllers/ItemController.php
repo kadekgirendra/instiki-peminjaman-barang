@@ -9,9 +9,7 @@ use Carbon\Carbon;
 
 class ItemController extends Controller
 {
-    public function __construct(protected AvailabilityService $availability)
-    {
-    }
+    public function __construct(protected AvailabilityService $availability) {}
 
     public function index(Request $request)
     {
