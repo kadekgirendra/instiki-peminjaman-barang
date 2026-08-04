@@ -1,4 +1,4 @@
-<x-app-layout title="Permintaan">
+<x-admin-layout title="Permintaan">
     <div x-data="{ selected: null }">
 
         <div class="flex items-start justify-between flex-wrap gap-4 mb-6">
@@ -44,6 +44,7 @@
                         <th class="py-4 px-6 font-semibold">Tanggal Peminjaman</th>
                         <th class="py-4 px-6 font-semibold">Tanggal Pengembalian</th>
                         <th class="py-4 px-6 font-semibold">Status</th>
+                        <th class="py-4 px-6 font-semibold">Denda</th>
                         <th class="py-4 px-6 font-semibold">Aksi</th>
                     </tr>
                 </thead>
@@ -62,9 +63,22 @@
                             <td class="py-4 px-6 text-slate-500 whitespace-nowrap">{{ $g['tanggal_pinjam'] }}</td>
                             <td class="py-4 px-6 text-slate-500 whitespace-nowrap">{{ $g['tanggal_kembali'] }}</td>
                             <td class="py-4 px-6">
-                                <span class="{{ $g['status_badge'] }} text-xs font-semibold px-3.5 py-1.5 rounded-full">
+                                <span
+                                    class="{{ $g['status_badge'] }} text-xs font-semibold px-3.5 py-1.5 rounded-full whitespace-nowrap inline-block">
                                     {{ $g['status_label'] }}
                                 </span>
+                            </td>
+                            <td class="py-4 px-6 whitespace-nowrap">
+                                @if ($g['status'] === 'completed')
+                                    <span class="font-semibold {{ $g['total_fine'] > 0 ? 'text-danger' : 'text-slate-400' }}">
+                                        Rp{{ number_format($g['total_fine'], 0, ',', '.') }}
+                                    </span>
+                                    @if ($g['was_returned_late'])
+                                        <span class="block text-xs text-danger/70">Telat {{ $g['days_late_at_return'] }} hari</span>
+                                    @endif
+                                @else
+                                    <span class="text-slate-300">—</span>
+                                @endif
                             </td>
                             <td class="py-4 px-6" onclick="event.stopPropagation()">
                                 @if ($g['status'] === 'pending')
@@ -111,7 +125,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="7" class="text-center text-slate-500 py-10">Belum ada permintaan.</td>
+                            <td colspan="8" class="text-center text-slate-500 py-10">Belum ada permintaan.</td>
                         </tr>
                     @endforelse
                 </tbody>
@@ -287,6 +301,57 @@
                                     </button>
                                 </form>
                             </div>
+
+                            {{-- Riwayat pengembalian — muncul kalau status Selesai (completed) --}}
+                            <div x-show="selected.status === 'completed'" class="border-t border-slate-100 pt-6">
+                                <h4 class="font-semibold text-secondary mb-4">Riwayat Pengembalian</h4>
+
+                                <div class="grid grid-cols-2 gap-4 mb-4">
+                                    <div>
+                                        <p class="text-xs text-slate-400 mb-1">Tanggal Dikembalikan</p>
+                                        <p class="font-medium text-secondary" x-text="selected.returned_at"></p>
+                                    </div>
+                                    <div>
+                                        <p class="text-xs text-slate-400 mb-1">Status Pengembalian</p>
+                                        <p class="font-medium"
+                                            :class="selected.was_returned_late ? 'text-danger' : 'text-success'"
+                                            x-text="selected.was_returned_late ? ('Telat ' + selected.days_late_at_return + ' hari') : 'Tepat waktu'">
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <p class="text-xs text-slate-400 mb-2">Rincian Denda per Barang</p>
+                                <div class="border border-slate-200 rounded-xl overflow-hidden mb-3">
+                                    <table class="w-full text-sm">
+                                        <thead class="bg-background text-slate-500">
+                                            <tr>
+                                                <th class="text-left font-medium py-2 px-4">Barang</th>
+                                                <th class="text-right font-medium py-2 px-4">Denda</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <template x-for="(barang, idx) in (selected ? selected.items_list : [])"
+                                                :key="idx">
+                                                <tr class="border-t border-slate-100">
+                                                    <td class="py-2 px-4 text-secondary font-medium"
+                                                        x-text="barang.name"></td>
+                                                    <td class="py-2 px-4 text-right"
+                                                        :class="barang.fine > 0 ? 'text-danger font-semibold' : 'text-slate-400'"
+                                                        x-text="'Rp' + new Intl.NumberFormat('id-ID').format(barang.fine)">
+                                                    </td>
+                                                </tr>
+                                            </template>
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                <div class="flex items-center justify-between bg-background rounded-xl px-4 py-3">
+                                    <span class="text-sm font-semibold text-secondary">Total Denda</span>
+                                    <span class="text-sm font-bold"
+                                        :class="selected.total_fine > 0 ? 'text-danger' : 'text-success'"
+                                        x-text="'Rp' + new Intl.NumberFormat('id-ID').format(selected.total_fine)"></span>
+                                </div>
+                            </div>
                         </div>
 
                         <div x-show="selected.status === 'pending'" class="flex justify-end gap-3 px-8 pb-7 pt-2">
@@ -319,4 +384,4 @@
         </div>
 
     </div>
-</x-app-layout>
+</x-admin-layout>

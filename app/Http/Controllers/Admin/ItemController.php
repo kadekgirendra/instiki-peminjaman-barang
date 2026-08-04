@@ -4,11 +4,14 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Item;
+use App\Services\AvailabilityService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
 class ItemController extends Controller
 {
+    public function __construct(protected AvailabilityService $availability) {}
+
     public function index(Request $request)
     {
         $query = Item::query();
@@ -22,6 +25,21 @@ class ItemController extends Controller
         }
 
         $items = $query->orderBy('name')->paginate(10)->withQueryString();
+
+        // Stok "Tersedia" itu bukan kolom statis di tabel items — dihitung
+        // real-time via AvailabilityService (total_stock dikurangi quantity
+        // yang lagi status booked HARI INI), sama seperti logika yang dipakai
+        // saat approve transaksi. total_stock sendiri memang tidak pernah
+        // berkurang otomatis; itu representasi jumlah unit yang admin PUNYA,
+        // bukan yang sedang tidak dipinjam.
+        $today = now()->toDateString();
+
+        $items->getCollection()->transform(function (Item $item) use ($today) {
+            $item->available_stock = $this->availability->getAvailableStock($item, $today, $today);
+            $item->borrowed_now = $item->total_stock - $item->available_stock;
+
+            return $item;
+        });
 
         $categories = Item::select('category')
             ->distinct()

@@ -1,4 +1,4 @@
-<x-app-layout title="Manajemen Inventaris">
+<x-admin-layout title="Manajemen Inventaris">
     <div class="flex items-start justify-between flex-wrap gap-4 mb-6">
         <div>
             <h1 class="text-2xl font-bold text-secondary">Manajemen Inventaris</h1>
@@ -51,7 +51,8 @@
                 <tr>
                     <th class="py-4 px-6 font-semibold">Barang</th>
                     <th class="py-4 px-6 font-semibold">Kategori</th>
-                    <th class="py-4 px-6 font-semibold">Stok</th>
+                    <th class="py-4 px-6 font-semibold">Stok Total</th>
+                    <th class="py-4 px-6 font-semibold">Stok Tersedia</th>
                     <th class="py-4 px-6 font-semibold">Status</th>
                     <th class="py-4 px-6 font-semibold">Aksi</th>
                 </tr>
@@ -59,17 +60,41 @@
             <tbody>
                 @forelse ($items as $item)
                     @php
-                        $status = $item->total_stock === 0
+                        $status = $item->available_stock === 0
                             ? ['label' => 'Stok Habis', 'class' => 'bg-danger']
-                            : ($item->total_stock <= 3
+                            : ($item->available_stock <= 3
                                 ? ['label' => 'Stok Sedikit', 'class' => 'bg-warning']
                                 : ['label' => 'Tersedia', 'class' => 'bg-success']);
                     @endphp
 
                     <tr x-data="{ confirmDelete: false }" class="border-b border-slate-100 last:border-0">
-                        <td class="py-4 px-6 font-medium text-secondary">{{ $item->name }}</td>
+                        <td class="py-4 px-6 font-medium text-secondary">
+                            <div class="flex items-center gap-3">
+                                @if ($item->image)
+                                    <img src="{{ asset('storage/' . $item->image) }}" alt="{{ $item->name }}"
+                                        class="w-10 h-10 rounded-lg object-cover shrink-0 border border-slate-100">
+                                @else
+                                    <div
+                                        class="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center shrink-0 text-slate-400">
+                                        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                            stroke-width="2">
+                                            <rect x="3" y="3" width="18" height="18" rx="2" />
+                                            <circle cx="8.5" cy="8.5" r="1.5" />
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M21 15l-5-5L5 21" />
+                                        </svg>
+                                    </div>
+                                @endif
+                                <span>{{ $item->name }}</span>
+                            </div>
+                        </td>
                         <td class="py-4 px-6 text-slate-500">{{ $item->category }}</td>
                         <td class="py-4 px-6 text-slate-500">{{ $item->total_stock }} unit</td>
+                        <td class="py-4 px-6 text-slate-500">
+                            {{ $item->available_stock }} unit
+                            @if ($item->borrowed_now > 0)
+                                <span class="text-xs text-slate-400">({{ $item->borrowed_now }} dipinjam)</span>
+                            @endif
+                        </td>
                         <td class="py-4 px-6">
                             <span
                                 class="{{ $status['class'] }} text-white text-xs font-semibold px-3.5 py-1.5 rounded-full">
@@ -138,7 +163,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="5" class="text-center text-slate-500 py-10">Belum ada barang. Tambahkan barang pertama.
+                        <td colspan="6" class="text-center text-slate-500 py-10">Belum ada barang. Tambahkan barang pertama.
                         </td>
                     </tr>
                 @endforelse
@@ -151,4 +176,4 @@
             {{ $items->links() }}
         </div>
     @endif
-</x-app-layout>
+</x-admin-layout>

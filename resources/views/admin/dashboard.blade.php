@@ -1,4 +1,4 @@
-<x-app-layout title="Dashboard">
+<x-admin-layout title="Dashboard">
     <div>
         <h1 class="text-2xl font-bold text-secondary">Dashboard</h1>
         <p class="text-slate-500 text-sm mt-0.5 mb-6">Selamat datang kembali! Informasi terkini mengenai inventaris</p>
@@ -162,4 +162,4 @@
             @endif
         </div>
     </div>
-</x-app-layout>
+</x-admin-layout>

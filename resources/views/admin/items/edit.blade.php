@@ -1,4 +1,4 @@
-<x-app-layout title="Edit Barang">
+<x-admin-layout title="Edit Barang">
     <a href="{{ route('admin.items.index') }}"
         class="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-secondary mb-4 transition">
         <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -15,4 +15,4 @@
             @include('admin.items._form')
         </form>
     </div>
-</x-app-layout>
+</x-admin-layout>

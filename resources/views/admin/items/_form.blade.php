@@ -83,7 +83,7 @@
 
             <div>
                 <label class="block text-sm font-semibold text-secondary mb-1.5">Deskripsi</label>
-                <textarea name="description" rows="4" placeholder="Deskripsi singkat barang (opsional)"
+                <textarea name="description" rows="4" placeholder="Deskripsi singkat barang"
                     class="w-full rounded-xl border border-slate-200 bg-background px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:bg-white transition resize-none">{{ old('description', $item->description ?? '') }}</textarea>
                 @error('description')
                 <p class="text-danger text-xs mt-1">{{ $message }}</p> @enderror

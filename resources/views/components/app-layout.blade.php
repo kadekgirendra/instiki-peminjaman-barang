@@ -22,71 +22,64 @@
                 </div>
             </div>
 
-            <nav class="flex-1 px-4 py-6 space-y-1">
-                @php
-                    $navItems = auth()->check() && auth()->user()->isAdmin()
-                        ? [
-                            ['route' => 'admin.dashboard', 'label' => 'Dashboard', 'icon' => 'grid'],
-                            ['route' => 'admin.items.index', 'label' => 'Inventaris', 'icon' => 'box'],
-                            ['route' => 'admin.transactions.index', 'label' => 'Permintaan', 'icon' => 'file'],
-                            ['route' => 'admin.calendar', 'label' => 'Kalender', 'icon' => 'clock'],
-                            ['route' => 'admin.reports.index', 'label' => 'Laporan', 'icon' => 'chart'],
-                        ]
-                        : [
+            {{-- Layout ini khusus MAHASISWA/DOSEN. Untuk sisi admin, lihat <x-admin-layout>. --}}
+                <nav class="flex-1 px-4 py-6 space-y-1">
+                    @php
+                        $navItems = [
                             ['route' => 'dashboard', 'label' => 'Dashboard', 'icon' => 'grid'],
                             ['route' => 'items.index', 'label' => 'Katalog', 'icon' => 'box'],
                             ['route' => 'transactions.index', 'label' => 'Pinjaman Saya', 'icon' => 'box'],
                             ['route' => 'transactions.history', 'label' => 'History', 'icon' => 'clock'],
                         ];
-                @endphp
+                    @endphp
 
-                @foreach ($navItems as $item)
-                    @continue (!\Illuminate\Support\Facades\Route::has($item['route']))
-                    @php $isActive = request()->routeIs($item['route']); @endphp
-                    <a href="{{ route($item['route']) }}" class="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition
-                                      {{ $isActive ? 'bg-primary text-white' : 'text-slate-300 hover:bg-white/5' }}">
+                    @foreach ($navItems as $item)
+                        @continue (!\Illuminate\Support\Facades\Route::has($item['route']))
+                        @php $isActive = request()->routeIs($item['route']); @endphp
+                        <a href="{{ route($item['route']) }}" class="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition
+                                          {{ $isActive ? 'bg-primary text-white' : 'text-slate-300 hover:bg-white/5' }}">
 
-                        @if ($item['icon'] === 'grid')
-                            <svg class="w-5 h-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                stroke-width="2">
-                                <rect x="3" y="3" width="7" height="7" rx="1.5" />
-                                <rect x="14" y="3" width="7" height="7" rx="1.5" />
-                                <rect x="3" y="14" width="7" height="7" rx="1.5" />
-                                <rect x="14" y="14" width="7" height="7" rx="1.5" />
-                            </svg>
-                        @elseif ($item['icon'] === 'box')
-                            <svg class="w-5 h-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                stroke-width="1.8">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M21 8l-9-5-9 5 9 5 9-5z" />
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M3 8v8l9 5 9-5V8" />
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 13v8" />
-                            </svg>
-                        @elseif ($item['icon'] === 'clock')
-                            <svg class="w-5 h-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 2" />
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M3.5 9a9 9 0 111.5 8.5" />
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M3 4v5h5" />
-                            </svg>
-                        @elseif ($item['icon'] === 'file')
-                            <svg class="w-5 h-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                stroke-width="1.8">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M14 3v4a1 1 0 001 1h4" />
-                                <path stroke-linecap="round" stroke-linejoin="round"
-                                    d="M17 21H7a2 2 0 01-2-2V5a2 2 0 012-2h7l5 5v11a2 2 0 01-2 2z" />
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 13h6M9 17h6" />
-                            </svg>
-                        @elseif ($item['icon'] === 'chart')
-                            <svg class="w-5 h-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                stroke-width="1.8">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M4 19V10M12 19V5M20 19v-7" />
-                            </svg>
-                        @endif
+                            @if ($item['icon'] === 'grid')
+                                <svg class="w-5 h-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <rect x="3" y="3" width="7" height="7" rx="1.5" />
+                                    <rect x="14" y="3" width="7" height="7" rx="1.5" />
+                                    <rect x="3" y="14" width="7" height="7" rx="1.5" />
+                                    <rect x="14" y="14" width="7" height="7" rx="1.5" />
+                                </svg>
+                            @elseif ($item['icon'] === 'box')
+                                <svg class="w-5 h-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="1.8">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M21 8l-9-5-9 5 9 5 9-5z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 8v8l9 5 9-5V8" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 13v8" />
+                                </svg>
+                            @elseif ($item['icon'] === 'clock')
+                                <svg class="w-5 h-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 2" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M3.5 9a9 9 0 111.5 8.5" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 4v5h5" />
+                                </svg>
+                            @elseif ($item['icon'] === 'file')
+                                <svg class="w-5 h-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="1.8">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M14 3v4a1 1 0 001 1h4" />
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M17 21H7a2 2 0 01-2-2V5a2 2 0 012-2h7l5 5v11a2 2 0 01-2 2z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 13h6M9 17h6" />
+                                </svg>
+                            @elseif ($item['icon'] === 'chart')
+                                <svg class="w-5 h-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="1.8">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 19V10M12 19V5M20 19v-7" />
+                                </svg>
+                            @endif
 
-                        {{ $item['label'] }}
-                    </a>
-                @endforeach
-            </nav>
+                            {{ $item['label'] }}
+                        </a>
+                    @endforeach
+                </nav>
         </aside>
 
         {{-- Main area --}}
@@ -189,8 +182,7 @@
                     <button @click="open = !open" class="flex items-center gap-3">
                         <div class="text-right leading-tight">
                             <p class="font-semibold text-secondary text-sm">{{ auth()->user()->name }}</p>
-                            <p class="text-xs text-slate-400">{{ auth()->user()->isAdmin() ? 'Admin' : 'Mahasiswa' }}
-                            </p>
+                            <p class="text-xs text-slate-400">Mahasiswa/Dosen</p>
                         </div>
 
                         <div

@@ -1,4 +1,4 @@
-<x-app-layout title="Laporan">
+<x-admin-layout title="Laporan">
     <div class="flex items-start justify-between flex-wrap gap-4 mb-6">
         <div>
             <h1 class="text-2xl font-bold text-secondary">Laporan</h1>
@@ -72,4 +72,4 @@
             </tbody>
         </table>
     </div>
-</x-app-layout>
+</x-admin-layout>

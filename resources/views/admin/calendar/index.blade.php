@@ -46,7 +46,7 @@
     </style>
 @endpush
 
-<x-app-layout title="Kalender Sirkulasi">
+<x-admin-layout title="Kalender Sirkulasi">
     <div x-data="{
             selectedDay: null,
         }" x-init="
@@ -122,4 +122,4 @@
     </div>
 
     @vite('resources/js/admin-calendar.js')
-</x-app-layout>
+</x-admin-layout>

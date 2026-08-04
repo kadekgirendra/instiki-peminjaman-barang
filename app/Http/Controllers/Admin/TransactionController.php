@@ -48,10 +48,21 @@ class TransactionController extends Controller
                 : $group->pluck('item.name')->implode(', ');
 
             $itemsList = $group->map(fn($trx) => [
-                'id'       => $trx->id,
-                'name'     => $trx->item->name,
-                'quantity' => $trx->quantity,
+                'id'          => $trx->id,
+                'name'        => $trx->item->name,
+                'quantity'    => $trx->quantity,
+                'fine'        => (float) $trx->total_fee,
+                'returned_at' => $trx->returned_at?->translatedFormat('j M Y'),
             ])->values();
+
+            // Total denda seluruh barang dalam permintaan ini (cuma keisi kalau
+            // sudah completed — sebelum itu total_fee semua barang masih 0).
+            $totalFine = (float) $group->sum('total_fee');
+
+            // Rentang tanggal barang benar-benar dikembalikan (bisa beda-beda per
+            // barang kalau suatu saat fitur "selesai per-barang" dipisah; untuk
+            // sekarang biasanya sama karena di-complete bareng lewat 1 form).
+            $returnedAt = $group->pluck('returned_at')->filter()->max();
 
             $firstTrx = $group->first();
             $returnPhotoUrl = $firstTrx->return_photo ? asset('storage/' . $firstTrx->return_photo) : null;
@@ -74,13 +85,32 @@ class TransactionController extends Controller
             // (masih dianggap dipinjam), cuma labelnya diganti kalau end_date sudah lewat.
             // Ini murni tampilan, tidak mengubah $status supaya tombol "Selesaikan" & logic
             // approve/reject/complete tetap jalan seperti biasa.
+            //
+            // PENTING: pakai end_date dari tabel TRANSACTIONS (bukan loan_requests), diambil
+            // yang paling akhir di antara barang dalam grup ini. Ini biar satu sumber sama
+            // persis dengan yang dipakai AvailabilityService, accessor Transaction::is_overdue,
+            // dan reminder bell — ketiganya baca transactions.end_date, bukan loan_requests.end_date.
+            // Normalnya dua kolom itu sama (diisi bareng saat mahasiswa mengajukan), tapi kalau
+            // beda (misal habis edit manual di DB), transactions.end_date yang menang.
+            $latestEndDate = $group->max('end_date');
+
             $daysLate = null;
-            if ($status === 'booked' && $loanRequest->end_date->isPast()) {
-                $daysLate = (int) $loanRequest->end_date->diffInDays(now());
+            if ($status === 'booked' && now()->toDateString() > $latestEndDate->toDateString()) {
+                $daysLate = (int) $latestEndDate->diffInDays(now());
                 $statusMeta = [
                     'label' => 'Terlambat ' . $daysLate . ' hari',
                     'badge' => 'bg-danger/10 text-danger',
                 ];
+            }
+
+            // Untuk yang SUDAH completed: apakah waktu itu dikembalikan telat?
+            // (beda dari $daysLate di atas, yang cuma untuk barang yang MASIH
+            // booked dan belum dikembalikan sampai sekarang)
+            $wasReturnedLate = false;
+            $daysLateAtReturn = null;
+            if ($status === 'completed' && $returnedAt && $returnedAt->toDateString() > $latestEndDate->toDateString()) {
+                $wasReturnedLate = true;
+                $daysLateAtReturn = (int) $latestEndDate->diffInDays($returnedAt);
             }
 
             return [
@@ -98,6 +128,10 @@ class TransactionController extends Controller
                 'status_badge'         => $statusMeta['badge'],
                 'is_overdue'           => $daysLate !== null,
                 'days_late'            => $daysLate,
+                'total_fine'           => $totalFine,
+                'returned_at'          => $returnedAt?->translatedFormat('j M Y'),
+                'was_returned_late'    => $wasReturnedLate,
+                'days_late_at_return'  => $daysLateAtReturn,
                 'catatan'              => $loanRequest->purpose,
                 'document_url'         => $documentUrl,
                 'document_name'        => $documentName,
