@@ -44,8 +44,8 @@
 
 | Nama | NIM | Tugas |
 |---|---|---|
-| [Kadek Girendra Ari Astika] | 2401010325 | [Alur User (Login , Resgister, Dashboard, Katalog, Detail barang, Form Peminjaman, Form pengembalian, Status Pinjaman,Riwayat Transaksi)] |
-| [I Wayan Yordi Ari Muliantara ] | [2401010306] | [Alur Admin (Dashboard, Aprrove, Reject, Inventaris, Laporan Peminjaman, Kalender Peminjaman] |
+| Kadek Girendra Ari Astika | 2401010325 | Alur User (Login , Resgister, Dashboard, Katalog, Detail barang, Form Peminjaman, Form pengembalian, Status Pinjaman,Riwayat Transaksi) |
+| I Wayan Yordi Ari Muliantara | 2401010306 | Alur Admin (Dashboard, Aprrove, Reject, Inventaris, Laporan Peminjaman, Kalender Peminjaman |
 
 
 ---
