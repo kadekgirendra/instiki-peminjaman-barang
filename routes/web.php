@@ -10,6 +10,10 @@ use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\ReturnController;
 use App\Http\Controllers\Admin;
 
+Route::get('/', function () {
+    return redirect()->route('login');
+});
+
 Route::middleware('guest')->group(function () {
 
     // Register
