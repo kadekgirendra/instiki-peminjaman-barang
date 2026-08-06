@@ -2,7 +2,7 @@
 
 **SiPinjam INSTIKI** adalah aplikasi web untuk mengelola proses peminjaman barang/inventaris di lingkungan kampus INSTIKI. Project ini dibuat sebagai implementasi tugas proyek mata kuliah Human Computer Interaction (HCI) & Manajemen Proyek Sistem Informasi (ManPro SI)  bukan merupakan sistem resmi milik kampus.
 
-🔗 **Demo:** http://202.155.16.96
+🔗 **Demo:** https://sipinjaminstiki.my.id
 
 ---
 
