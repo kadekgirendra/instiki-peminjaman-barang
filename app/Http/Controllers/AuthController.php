@@ -40,6 +40,8 @@ class AuthController extends Controller
         $request->authenticate();
         $request->session()->regenerate();
 
+        $request->session()->forget('url.intended');
+
         return $request->user()->isAdmin()
             ? redirect()->intended(route('admin.dashboard'))
             : redirect()->intended(route('dashboard'));

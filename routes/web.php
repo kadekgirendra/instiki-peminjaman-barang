@@ -25,10 +25,8 @@ Route::middleware('guest')->group(function () {
     Route::post('/login', [AuthController::class, 'login']);
 });
 
-Route::middleware('auth')->group(function () {
-
-    // Logout
-    Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+Route::middleware('auth')->post('/logout', [AuthController::class, 'logout'])->name('logout');
+Route::middleware(['auth', 'not-admin'])->group(function () {
 
     // Dashboard User
     Route::get('/dashboard', [DashboardController::class, 'index'])
