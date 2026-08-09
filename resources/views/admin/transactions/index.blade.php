@@ -26,13 +26,58 @@
 
         {{-- Tab filter status --}}
         @php
+            // Class ditulis literal per status (bukan digabung dari variabel) supaya
+            // ke-detect oleh Tailwind scanner saat build — class hasil string
+            // concatenation seperti 'bg-'.$color tidak akan ter-compile.
             $tabs = [
-                '' => ['label' => 'Semua', 'count' => $tabCounts['all']],
-                'pending' => ['label' => 'Tertunda', 'count' => $tabCounts['pending'],],
-                'booked' => ['label' => 'Disetujui', 'count' => $tabCounts['booked']],
-                'late' => ['label' => 'Terlambat', 'count' => $tabCounts['late']],
-                'completed' => ['label' => 'Selesai', 'count' => $tabCounts['completed']],
-                'rejected' => ['label' => 'Ditolak', 'count' => $tabCounts['rejected']],
+                '' => [
+                    'label' => 'Semua',
+                    'count' => $tabCounts['all'],
+                    'active' => 'bg-secondary text-white border-secondary',
+                    'inactive' => 'bg-white text-secondary border-slate-200 hover:border-secondary/40',
+                    'badge_active' => 'bg-white/20',
+                    'badge_inactive' => 'bg-secondary/10',
+                ],
+                'pending' => [
+                    'label' => 'Tertunda',
+                    'count' => $tabCounts['pending'],
+                    'active' => 'bg-warning text-white border-warning',
+                    'inactive' => 'bg-white text-warning border-slate-200 hover:border-warning/40',
+                    'badge_active' => 'bg-white/20',
+                    'badge_inactive' => 'bg-warning/10',
+                ],
+                'booked' => [
+                    'label' => 'Disetujui',
+                    'count' => $tabCounts['booked'],
+                    'active' => 'bg-success text-white border-success',
+                    'inactive' => 'bg-white text-success border-slate-200 hover:border-success/40',
+                    'badge_active' => 'bg-white/20',
+                    'badge_inactive' => 'bg-success/10',
+                ],
+                'late' => [
+                    'label' => 'Terlambat',
+                    'count' => $tabCounts['late'],
+                    'active' => 'bg-danger text-white border-danger',
+                    'inactive' => 'bg-white text-danger border-slate-200 hover:border-danger/40',
+                    'badge_active' => 'bg-white/20',
+                    'badge_inactive' => 'bg-danger/10',
+                ],
+                'completed' => [
+                    'label' => 'Selesai',
+                    'count' => $tabCounts['completed'],
+                    'active' => 'bg-info text-white border-info',
+                    'inactive' => 'bg-white text-info border-slate-200 hover:border-info/40',
+                    'badge_active' => 'bg-white/20',
+                    'badge_inactive' => 'bg-info/10',
+                ],
+                'rejected' => [
+                    'label' => 'Ditolak',
+                    'count' => $tabCounts['rejected'],
+                    'active' => 'bg-slate-500 text-white border-slate-500',
+                    'inactive' => 'bg-white text-slate-500 border-slate-200 hover:border-slate-400',
+                    'badge_active' => 'bg-white/20',
+                    'badge_inactive' => 'bg-slate-100',
+                ],
             ];
         @endphp
         <div class="flex items-center gap-2 mb-6 overflow-x-auto pb-1">
@@ -41,11 +86,11 @@
                     $isActive = $statusFilter === $value || (!$statusFilter && $value === '');
                     $query = array_filter(['status' => $value ?: null, 'search' => request('search')]);
                 @endphp
-                <a href="{{ route('admin.transactions.index', $query) }}"
-                    class="shrink-0 flex items-center gap-1.5 text-sm font-semibold px-4 py-2 rounded-full transition
-                                    {{ $isActive ? 'bg-secondary text-white' : 'bg-white text-slate-500 hover:bg-slate-100' }}">
+                <a href="{{ route('admin.transactions.index', $query) }}" class="shrink-0 flex items-center gap-1.5 text-sm font-semibold px-4 py-2 rounded-full border transition
+                                        {{ $isActive ? $tab['active'] : $tab['inactive'] }}">
                     {{ $tab['label'] }}
-                    <span class="text-xs px-1.5 py-0.5 rounded-full {{ $isActive ? 'bg-white/20' : 'bg-slate-100' }}">
+                    <span
+                        class="text-xs px-1.5 py-0.5 rounded-full {{ $isActive ? $tab['badge_active'] : $tab['badge_inactive'] }}">
                         {{ $tab['count'] }}
                     </span>
                 </a>

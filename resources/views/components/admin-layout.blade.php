@@ -32,6 +32,7 @@
               ['route' => 'admin.transactions.index', 'label' => 'Permintaan', 'icon' => 'file'],
               ['route' => 'admin.calendar', 'label' => 'Kalender', 'icon' => 'clock'],
               ['route' => 'admin.reports.index', 'label' => 'Laporan', 'icon' => 'chart'],
+              ['route' => 'admin.users.index', 'label' => 'Kelola User', 'icon' => 'users'],
             ];
           @endphp
 
@@ -40,7 +41,7 @@
             @php $isActive = request()->routeIs($item['route']); @endphp
             <a href="{{ route($item['route']) }}"
               class="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition
-                                            {{ $isActive ? 'bg-primary text-white' : 'text-slate-300 hover:bg-white/5' }}">
+                                                {{ $isActive ? 'bg-primary text-white' : 'text-slate-300 hover:bg-white/5' }}">
 
               @if ($item['icon'] === 'grid')
                 <svg class="w-5 h-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -71,6 +72,14 @@
               @elseif ($item['icon'] === 'chart')
                 <svg class="w-5 h-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M4 19V10M12 19V5M20 19v-7" />
+                </svg>
+              @elseif ($item['icon'] === 'users')
+                <svg class="w-5 h-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                  <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M17 20v-1.5a3.5 3.5 0 00-3.5-3.5h-5A3.5 3.5 0 005 18.5V20" />
+                  <circle cx="9.5" cy="7.5" r="3.5" />
+                  <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M16 8a3 3 0 010 5.7M19.5 20v-1.3a3.3 3.3 0 00-2-3" />
                 </svg>
               @endif
 
