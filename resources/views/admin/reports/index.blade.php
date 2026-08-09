@@ -2,16 +2,28 @@
     <div class="flex items-start justify-between flex-wrap gap-4 mb-6">
         <div>
             <h1 class="text-2xl font-bold text-secondary">Laporan</h1>
-            <p class="text-slate-500 text-sm mt-0.5">Cek Laporan dan cetak Laporan</p>
+            <p class="text-slate-500 text-sm mt-0.5">Ringkasan aktivitas peminjaman barang kampus</p>
         </div>
 
-        <a href="{{ route('admin.reports.export', ['range' => $range, 'category' => $category]) }}"
-            class="flex items-center gap-2 bg-secondary text-white font-semibold px-5 py-2.5 rounded-xl hover:opacity-90 transition text-sm">
-            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v12m0 0l-4-4m4 4l4-4M4 19h16" />
-            </svg>
-            Export Laporan
-        </a>
+        <div class="flex items-center gap-3">
+            <a href="{{ route('admin.reports.export-pdf', ['range' => $range, 'category' => $category]) }}"
+                class="flex items-center gap-2 bg-danger text-white font-semibold px-5 py-2.5 rounded-xl hover:opacity-90 transition text-sm">
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M14 3v4a1 1 0 001 1h4" />
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M17 21H7a2 2 0 01-2-2V5a2 2 0 012-2h7l5 5v11a2 2 0 01-2 2z" />
+                </svg>
+                Export PDF
+            </a>
+
+            <a href="{{ route('admin.reports.export', ['range' => $range, 'category' => $category]) }}"
+                class="flex items-center gap-2 bg-secondary text-white font-semibold px-5 py-2.5 rounded-xl hover:opacity-90 transition text-sm">
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v12m0 0l-4-4m4 4l4-4M4 19h16" />
+                </svg>
+                Export CSV
+            </a>
+        </div>
     </div>
 
     {{-- Filter --}}
@@ -38,7 +50,7 @@
             <label class="text-sm font-semibold text-secondary mb-2 block">Filter Kategori</label>
             <select name="category" onchange="this.form.submit()"
                 class="w-full rounded-xl border border-slate-200 bg-background px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30">
-                <option value="all" @selected($category === 'all')>All Categories</option>
+                <option value="all" @selected($category === 'all')>Semua Kategori</option>
                 @foreach ($categories as $c)
                     <option value="{{ $c }}" @selected($category === $c)>{{ $c }}</option>
                 @endforeach
@@ -46,30 +58,149 @@
         </div>
     </form>
 
-    {{-- Table --}}
-    <div class="bg-surface rounded-2xl shadow-sm overflow-hidden">
-        <table class="w-full text-sm text-left">
-            <thead class="bg-secondary text-white">
-                <tr>
-                    <th class="py-4 px-6 font-semibold">Barang</th>
-                    <th class="py-4 px-6 font-semibold">Total Dipinjam</th>
-                    <th class="py-4 px-6 font-semibold">Durasi Rata-rata</th>
-                </tr>
-            </thead>
-            <tbody>
-                @forelse ($rows as $row)
-                    <tr class="border-b border-slate-100 last:border-0">
-                        <td class="py-4 px-6 font-medium text-secondary">{{ $row['name'] }}</td>
-                        <td class="py-4 px-6 text-slate-500">{{ $row['total'] }}</td>
-                        <td class="py-4 px-6 text-slate-500">{{ $row['avg_duration'] }} Hari</td>
-                    </tr>
-                @empty
-                    <tr>
-                        <td colspan="3" class="text-center text-slate-500 py-10">Tidak ada data peminjaman pada rentang ini.
-                        </td>
-                    </tr>
-                @endforelse
-            </tbody>
-        </table>
+    {{-- Kartu Ringkasan --}}
+    <div class="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
+        <div class="bg-surface rounded-2xl shadow-sm p-5">
+            <p class="text-slate-400 text-xs font-medium mb-1">Total Pengajuan</p>
+            <p class="text-2xl font-bold text-secondary">{{ $summary['total_transactions'] }}</p>
+        </div>
+        <div class="bg-surface rounded-2xl shadow-sm p-5">
+            <p class="text-slate-400 text-xs font-medium mb-1">Total Unit Dipinjam</p>
+            <p class="text-2xl font-bold text-secondary">{{ $summary['total_unit'] }}</p>
+        </div>
+        <div class="bg-surface rounded-2xl shadow-sm p-5">
+            <p class="text-slate-400 text-xs font-medium mb-1">Peminjam Aktif</p>
+            <p class="text-2xl font-bold text-secondary">{{ $summary['total_peminjam'] }}</p>
+        </div>
+        <div class="bg-surface rounded-2xl shadow-sm p-5">
+            <p class="text-slate-400 text-xs font-medium mb-1">Rata-rata Durasi</p>
+            <p class="text-2xl font-bold text-secondary">{{ $summary['avg_duration'] }} <span
+                    class="text-sm font-medium text-slate-400">hari</span></p>
+        </div>
+        <div class="bg-surface rounded-2xl shadow-sm p-5">
+            <p class="text-slate-400 text-xs font-medium mb-1">Total Pendapatan</p>
+            <p class="text-2xl font-bold text-secondary">Rp {{ number_format($summary['total_revenue'], 0, ',', '.') }}
+            </p>
+        </div>
+    </div>
+
+    {{-- Breakdown Status --}}
+    <div class="bg-surface rounded-2xl shadow-sm p-6 mb-6">
+        <h2 class="font-bold text-secondary mb-4">Status Pengajuan pada Rentang Ini</h2>
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            <div class="flex items-center gap-3 bg-background rounded-xl p-4">
+                <span class="w-2.5 h-2.5 rounded-full bg-warning shrink-0"></span>
+                <div>
+                    <p class="text-lg font-bold text-secondary">{{ $statusBreakdown['pending'] }}</p>
+                    <p class="text-xs text-slate-400">Tertunda</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-3 bg-background rounded-xl p-4">
+                <span class="w-2.5 h-2.5 rounded-full bg-success shrink-0"></span>
+                <div>
+                    <p class="text-lg font-bold text-secondary">{{ $statusBreakdown['booked'] }}</p>
+                    <p class="text-xs text-slate-400">Disetujui / Dipinjam</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-3 bg-background rounded-xl p-4">
+                <span class="w-2.5 h-2.5 rounded-full bg-info shrink-0"></span>
+                <div>
+                    <p class="text-lg font-bold text-secondary">{{ $statusBreakdown['completed'] }}</p>
+                    <p class="text-xs text-slate-400">Selesai</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-3 bg-background rounded-xl p-4">
+                <span class="w-2.5 h-2.5 rounded-full bg-danger shrink-0"></span>
+                <div>
+                    <p class="text-lg font-bold text-secondary">{{ $statusBreakdown['rejected'] }}</p>
+                    <p class="text-xs text-slate-400">Ditolak</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+
+        {{-- Laporan Per Barang --}}
+        <div class="bg-surface rounded-2xl shadow-sm overflow-hidden">
+            <div class="px-6 py-5 border-b border-slate-100">
+                <h2 class="font-bold text-secondary">Laporan Per Barang</h2>
+                <p class="text-slate-400 text-xs mt-0.5">Barang paling banyak dipinjam pada rentang ini</p>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm text-left">
+                    <thead class="bg-secondary text-white">
+                        <tr>
+                            <th class="py-3 px-6 font-semibold">Barang</th>
+                            <th class="py-3 px-6 font-semibold">Unit</th>
+                            <th class="py-3 px-6 font-semibold">Frekuensi</th>
+                            <th class="py-3 px-6 font-semibold">Durasi Rata&sup2;</th>
+                            <th class="py-3 px-6 font-semibold">Pendapatan</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse ($itemRows as $row)
+                            <tr class="border-b border-slate-100 last:border-0">
+                                <td class="py-3.5 px-6 font-medium text-secondary">
+                                    {{ $row['name'] }}
+                                    <p class="text-xs text-slate-400 font-normal">{{ $row['category'] }}</p>
+                                </td>
+                                <td class="py-3.5 px-6 text-slate-500">{{ $row['total_unit'] }}</td>
+                                <td class="py-3.5 px-6 text-slate-500">{{ $row['frequency'] }}x</td>
+                                <td class="py-3.5 px-6 text-slate-500">{{ $row['avg_duration'] }} hari</td>
+                                <td class="py-3.5 px-6 text-slate-500">
+                                    {{ $row['total_revenue'] > 0 ? 'Rp ' . number_format($row['total_revenue'], 0, ',', '.') : '-' }}
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="5" class="text-center text-slate-500 py-10">Tidak ada data pada rentang ini.
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        {{-- Laporan Per Peminjam --}}
+        <div class="bg-surface rounded-2xl shadow-sm overflow-hidden">
+            <div class="px-6 py-5 border-b border-slate-100">
+                <h2 class="font-bold text-secondary">Laporan Per Peminjam</h2>
+                <p class="text-slate-400 text-xs mt-0.5">Mahasiswa/dosen paling aktif meminjam pada rentang ini</p>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm text-left">
+                    <thead class="bg-secondary text-white">
+                        <tr>
+                            <th class="py-3 px-6 font-semibold">Nama</th>
+                            <th class="py-3 px-6 font-semibold">Pengajuan</th>
+                            <th class="py-3 px-6 font-semibold">Unit</th>
+                            <th class="py-3 px-6 font-semibold">Denda</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse ($borrowerRows as $row)
+                            <tr class="border-b border-slate-100 last:border-0">
+                                <td class="py-3.5 px-6 font-medium text-secondary">
+                                    {{ $row['name'] }}
+                                    <p class="text-xs text-slate-400 font-normal">{{ $row['nim_nidn'] ?? '-' }}</p>
+                                </td>
+                                <td class="py-3.5 px-6 text-slate-500">{{ $row['total_requests'] }}x</td>
+                                <td class="py-3.5 px-6 text-slate-500">{{ $row['total_unit'] }}</td>
+                                <td class="py-3.5 px-6 text-slate-500">
+                                    {{ $row['total_fine'] > 0 ? 'Rp ' . number_format($row['total_fine'], 0, ',', '.') : '-' }}
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="4" class="text-center text-slate-500 py-10">Tidak ada data pada rentang ini.
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
 </x-admin-layout>

@@ -85,9 +85,11 @@ Route::middleware(['auth', 'admin'])
             ->name('loan-requests.complete');
 
         Route::resource('items', Admin\ItemController::class);
+        Route::resource('users', Admin\UserController::class);
 
         Route::get('/laporan', [Admin\ReportController::class, 'index'])->name('reports.index');
         Route::get('/laporan/export', [Admin\ReportController::class, 'export'])->name('reports.export');
+        Route::get('/laporan/export-pdf', [Admin\ReportController::class, 'exportPdf'])->name('reports.export-pdf');
 
         Route::get('/kalender', [Admin\CalendarController::class, 'index'])->name('calendar');
     });
