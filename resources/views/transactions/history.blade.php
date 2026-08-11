@@ -1,7 +1,8 @@
 <x-app-layout>
-    <h1 class="text-2xl font-bold text-secondary mb-6">History</h1>
+    <h1 class="text-xl sm:text-2xl font-bold text-secondary mb-4 sm:mb-6">History</h1>
 
-    <div class="bg-surface rounded-2xl shadow-sm overflow-hidden">
+    {{-- ============ VERSI DESKTOP — tabel, TIDAK berubah ============ --}}
+    <div class="hidden lg:block bg-surface rounded-2xl shadow-sm overflow-hidden">
         <table class="w-full">
             <thead>
                 <tr class="bg-secondary text-white">
@@ -41,5 +42,44 @@
                 @endforelse
             </tbody>
         </table>
+    </div>
+
+    {{-- ============ VERSI MOBILE — card list ============ --}}
+    <div class="lg:hidden space-y-3">
+        @forelse ($history as $loanRequestId => $group)
+            @php
+                $firstItem = $group->first();
+                $itemNames = $group->pluck('item.name')->implode(', ');
+                $isRejected = $firstItem->status === 'rejected';
+            @endphp
+
+            <div class="bg-surface rounded-xl p-4 shadow-sm border border-slate-100">
+                <div class="flex items-start justify-between gap-3 mb-2">
+                    <h3 class="font-semibold text-secondary text-sm leading-snug flex-1">{{ $itemNames }}</h3>
+
+                    @if ($isRejected)
+                        <span class="bg-danger text-white text-xs font-semibold px-3 py-1.5 rounded-lg shrink-0">
+                            Ditolak
+                        </span>
+                    @else
+                        <span class="bg-secondary text-white text-xs font-semibold px-3 py-1.5 rounded-lg shrink-0">
+                            Selesai
+                        </span>
+                    @endif
+                </div>
+
+                <p class="text-xs text-slate-500 flex items-center gap-1.5">
+                    <svg class="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="4" width="18" height="18" rx="2"/>
+                        <path stroke-linecap="round" d="M16 2v4M8 2v4M3 10h18"/>
+                    </svg>
+                    {{ $firstItem->updated_at->translatedFormat('j F Y') }}
+                </p>
+            </div>
+        @empty
+            <div class="bg-surface rounded-xl p-8 text-center border border-slate-100">
+                <p class="text-slate-500 text-sm">Belum ada riwayat peminjaman.</p>
+            </div>
+        @endforelse
     </div>
 </x-app-layout>
