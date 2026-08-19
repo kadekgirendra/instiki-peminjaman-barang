@@ -154,7 +154,7 @@
             </div>
         @endif
 
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 pb-32 lg:pb-0">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 pb-32 lg:pb-0 lg:items-start">
 
             {{-- Form utama --}}
             <div class="lg:col-span-2 bg-surface rounded-2xl shadow-sm p-4 sm:p-6">
