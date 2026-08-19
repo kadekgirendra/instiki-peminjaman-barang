@@ -22,7 +22,7 @@ class AvailabilityService
             ->sum('quantity');
     }
 
-     /**
+    /**
      * Stok aktual = Total Stok - Jumlah yang sudah booked di rentang tanggal itu.
      */
     public function getAvailableStock(Item $item, string $startDate, string $endDate): int
@@ -54,9 +54,19 @@ class AvailabilityService
 
         // Hitung total quantity terpakai per tanggal
         $usagePerDate = [];
+        $today = now()->toDateString();
 
         foreach ($bookedTransactions as $transaction) {
-            $period = CarbonPeriod::create($transaction->start_date, $transaction->end_date);
+            $isOverdue = $transaction->end_date->toDateString() < $today;
+
+            // Transaksi yang telat & belum ditandai selesai: kita tidak tahu kapan
+            // barangnya benar-benar kembali, jadi anggap dia menahan stok sampai
+            // akhir rentang yang sedang dicek (rangeEnd) — bukan cuma sampai
+            // end_date aslinya yang sudah lewat — supaya tanggal-tanggal
+            // setelahnya di date picker ikut ter-blok juga.
+            $periodEnd = $isOverdue ? $rangeEnd : $transaction->end_date;
+
+            $period = CarbonPeriod::create($transaction->start_date, $periodEnd);
 
             foreach ($period as $date) {
                 $key = $date->toDateString();
@@ -75,5 +85,4 @@ class AvailabilityService
 
         return $fullyBooked;
     }
-
 }

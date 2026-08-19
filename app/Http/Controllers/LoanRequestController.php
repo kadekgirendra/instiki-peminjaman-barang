@@ -12,9 +12,7 @@ use Illuminate\Support\Facades\DB;
 
 class LoanRequestController extends Controller
 {
-    public function __construct(protected AvailabilityService $availability)
-    {
-    }
+    public function __construct(protected AvailabilityService $availability) {}
 
     public function create()
     {
@@ -39,7 +37,7 @@ class LoanRequestController extends Controller
         $categories = Item::select('category')->distinct()->pluck('category');
 
         $prefillDates = session('loan_prefill_dates', ['start_date' => null, 'end_date' => null]);
-        
+
         return view('loan-requests.create', compact('cartItems', 'catalogItems', 'categories', 'prefillDates'));
     }
 

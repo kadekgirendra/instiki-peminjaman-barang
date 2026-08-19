@@ -5,6 +5,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
+
 /**
  * @property \Illuminate\Support\Carbon $start_date
  * @property \Illuminate\Support\Carbon $end_date
@@ -14,9 +15,20 @@ use Illuminate\Database\Eloquent\Model;
 class Transaction extends Model
 {
     protected $fillable = [
-        'loan_request_id', 'user_id', 'item_id', 'start_date', 'end_date', 'returned_at',
-        'purpose', 'quantity', 'status', 'total_fee', 'document_path','return_photo', 
-        'return_note', 'return_requested_at',
+        'loan_request_id',
+        'user_id',
+        'item_id',
+        'start_date',
+        'end_date',
+        'returned_at',
+        'purpose',
+        'quantity',
+        'status',
+        'total_fee',
+        'document_path',
+        'return_photo',
+        'return_note',
+        'return_requested_at',
     ];
 
     protected $casts = [
@@ -47,11 +59,24 @@ class Transaction extends Model
         return $query->whereIn('status', ['booked', 'completed']);
     }
 
-    // scope ini akan dipakai di Fase 4 untuk cek overlap tanggal
+    // scope ini dipakai AvailabilityService untuk cek overlap tanggal.
+    //
+    // PENTING: transaksi 'booked' yang end_date-nya sudah lewat hari ini
+    // (telat) tapi belum ditandai selesai oleh admin, TETAP dianggap
+    // menahan stok untuk rentang tanggal apa pun yang dicek — bukan cuma
+    // sampai end_date aslinya. Kita tidak tahu kapan barangnya benar-benar
+    // kembali secara fisik, jadi stok baru "bebas" lagi saat status
+    // benar-benar diubah admin ke 'completed' (lihat Admin\TransactionController::complete),
+    // bukan otomatis begitu tanggal jatuh temponya lewat.
     public function scopeOverlapping($query, string $startDate, string $endDate)
     {
+        $today = now()->toDateString();
+
         return $query->where('start_date', '<=', $endDate)
-            ->where('end_date', '>=', $startDate);
+            ->where(function ($q) use ($startDate, $today) {
+                $q->where('end_date', '>=', $startDate)
+                    ->orWhere('end_date', '<', $today);
+            });
     }
     public function getIsOverdueAttribute(): bool
     {
