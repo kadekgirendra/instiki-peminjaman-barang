@@ -1,133 +1,150 @@
 <x-app-layout>
     <div x-data="{
-            showCatalogModal: false,
-            showQtyModal: false,
-            showConfirmModal: false,
-            selectedItem: null,
-            quantity: 1,
-            search: '',
-            category: 'all',
-            startDate: '{{ $prefillDates['start_date'] }}',
-            endDate: '{{ $prefillDates['end_date'] }}',
-            fileName: null,
-            fileSize: null,
-            isImage: false,
-            showFileError: false,
-            catalogItems: {{ Illuminate\Support\Js::from($catalogItems->map(fn($i) => [
-    'id' => $i->id,
-    'name' => $i->name,
-    'category' => $i->category,
-    'stock' => $i->available_stock,
-    'image' => $i->image,
-    'inCartQty' => $i->cart_quantity,
-])) }},
-            cart: {{ Illuminate\Support\Js::from($cartItems->map(fn($i) => [
-    'id' => $i->id,
-    'name' => $i->name,
-    'category' => $i->category,
-    'quantity' => $i->cart_quantity,
-])) }},
-            get cartItemNames() {
-                return this.cart.map(i => i.name);
-            },
-            get filteredItems() {
-                return this.catalogItems.filter(i =>
-                    (this.category === 'all' || i.category === this.category) &&
-                    i.name.toLowerCase().includes(this.search.toLowerCase())
-                );
-            },
-            truncate(name) {
-                return name.length > 20 ? name.slice(0, 20) + '…' : name;
-            },
-            openQtyModal(item) {
-                this.selectedItem = item;
-                this.quantity = item.inCartQty > 0 ? item.inCartQty : 1;
-                this.showCatalogModal = false;
-                this.showQtyModal = true;
-            },
-            formatDate(dateStr) {
-                if (!dateStr) return '-';
-                const d = new Date(dateStr);
-                return d.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
-            },
-            async addToCart() {
-    const res = await fetch('{{ route('loan-cart.add') }}', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-            'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content,
+        showCatalogModal: false,
+        showQtyModal: false,
+        showConfirmModal: false,
+        selectedItem: null,
+        quantity: 1,
+        search: '',
+        category: 'all',
+        startDate: '{{ $prefillDates['start_date'] }}',
+        endDate: '{{ $prefillDates['end_date'] }}',
+        fileName: null,
+        fileSize: null,
+        isImage: false,
+        showFileError: false,
+        catalogItems: {{ Illuminate\Support\Js::from(
+            $catalogItems->map(
+                fn($i) => [
+                    'id' => $i->id,
+                    'name' => $i->name,
+                    'category' => $i->category,
+                    'stock' => $i->available_stock,
+                    'image' => $i->image,
+                    'inCartQty' => $i->cart_quantity,
+                ],
+            ),
+        ) }},
+        cart: {{ Illuminate\Support\Js::from(
+            $cartItems->map(
+                fn($i) => [
+                    'id' => $i->id,
+                    'name' => $i->name,
+                    'category' => $i->category,
+                    'quantity' => $i->cart_quantity,
+                ],
+            ),
+        ) }},
+        get cartItemNames() {
+            return this.cart.map(i => i.name);
         },
-        body: JSON.stringify({
-            item_id: this.selectedItem.id,
-            quantity: this.quantity,
-            start_date: this.startDate,
-            end_date: this.endDate,
-        }),
-    });
-
-    if (! res.ok) {
-        const data = await res.json();
-        $dispatch('toast', { message: data.message ?? 'Gagal menambahkan barang.', type: 'danger' });
-        return;
-    }
-
-    const data = await res.json();
-    const existingIndex = this.cart.findIndex(i => i.id === data.item.id);
-
-    if (existingIndex !== -1) {
-        this.cart[existingIndex].quantity = data.item.quantity;
-    } else {
-        this.cart.push(data.item);
-    }
-
-    const catalogIndex = this.catalogItems.findIndex(i => i.id === data.item.id);
-    if (catalogIndex !== -1) {
-        this.catalogItems[catalogIndex].inCartQty = data.item.quantity;
-    }
-
-    this.showQtyModal = false;
-    $dispatch('toast', { message: 'Barang berhasil ditambahkan ke keranjang.', type: 'success' });
-},
-            async removeFromCart(itemId) {
-    const res = await fetch('{{ url('/loan-cart') }}/' + itemId, {
-        method: 'DELETE',
-        headers: {
-            'Accept': 'application/json',
-            'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content,
+        get filteredItems() {
+            return this.catalogItems.filter(i =>
+                (this.category === 'all' || i.category === this.category) &&
+                i.name.toLowerCase().includes(this.search.toLowerCase())
+            );
         },
-    });
+        truncate(name) {
+            return name.length > 20 ? name.slice(0, 20) + '…' : name;
+        },
+        openQtyModal(item) {
+            this.selectedItem = item;
+            this.quantity = item.inCartQty > 0 ? item.inCartQty : 1;
+            this.showCatalogModal = false;
+            this.showQtyModal = true;
+        },
+        formatDate(dateStr) {
+            if (!dateStr) return '-';
+            const d = new Date(dateStr);
+            return d.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+        },
+        async addToCart() {
+            const res = await fetch('{{ route('loan-cart.add') }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content,
+                },
+                body: JSON.stringify({
+                    item_id: this.selectedItem.id,
+                    quantity: this.quantity,
+                    start_date: this.startDate,
+                    end_date: this.endDate,
+                }),
+            });
 
-    if (res.ok) {
-        this.cart = this.cart.filter(i => i.id !== itemId);
-
-        const catalogIndex = this.catalogItems.findIndex(i => i.id === itemId);
-        if (catalogIndex !== -1) {
-            this.catalogItems[catalogIndex].inCartQty = 0;
-        }
-    }
-},
-            attemptSubmit() {
-                this.showFileError = false;
-
-                if (! this.$refs.loanForm.reportValidity()) {
-                    return;
-                }
-                if (this.cart.length === 0) {
-                    $dispatch('toast', { message: 'Keranjang masih kosong, tambahkan minimal 1 barang.', type: 'danger' });
-                    return;
-                }
-                if (! this.fileName) {
-                    this.showFileError = true;
-                    this.$refs.documentInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    return;
-                }
-
-                this.showConfirmModal = true;
+            if (!res.ok) {
+                const data = await res.json();
+                $dispatch('toast', { message: data.message ?? 'Gagal menambahkan barang.', type: 'danger' });
+                return;
             }
-         }">
 
-        <h1 class="text-xl sm:text-2xl font-bold text-secondary mb-4 sm:mb-6">Pinjam Barang</h1>
+            const data = await res.json();
+            const existingIndex = this.cart.findIndex(i => i.id === data.item.id);
+
+            if (existingIndex !== -1) {
+                this.cart[existingIndex].quantity = data.item.quantity;
+            } else {
+                this.cart.push(data.item);
+            }
+
+            const catalogIndex = this.catalogItems.findIndex(i => i.id === data.item.id);
+            if (catalogIndex !== -1) {
+                this.catalogItems[catalogIndex].inCartQty = data.item.quantity;
+            }
+
+            this.showQtyModal = false;
+            $dispatch('toast', { message: 'Barang berhasil ditambahkan ke keranjang.', type: 'success' });
+        },
+        async removeFromCart(itemId) {
+            const res = await fetch('{{ url('/loan-cart') }}/' + itemId, {
+                method: 'DELETE',
+                headers: {
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content,
+                },
+            });
+
+            if (res.ok) {
+                this.cart = this.cart.filter(i => i.id !== itemId);
+
+                const catalogIndex = this.catalogItems.findIndex(i => i.id === itemId);
+                if (catalogIndex !== -1) {
+                    this.catalogItems[catalogIndex].inCartQty = 0;
+                }
+            }
+        },
+        attemptSubmit() {
+            this.showFileError = false;
+
+            if (!this.$refs.loanForm.reportValidity()) {
+                return;
+            }
+            if (this.cart.length === 0) {
+                $dispatch('toast', { message: 'Keranjang masih kosong, tambahkan minimal 1 barang.', type: 'danger' });
+                return;
+            }
+            if (!this.fileName) {
+                this.showFileError = true;
+                this.$refs.documentInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                return;
+            }
+
+            this.showConfirmModal = true;
+        }
+    }">
+
+        <div class="flex items-center gap-3 mb-4 sm:mb-6">
+            <a href="{{ route('items.index') }}"
+                class="w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center rounded-lg border border-slate-200 bg-surface text-secondary hover:bg-slate-50 transition shrink-0"
+                aria-label="Kembali ke katalog">
+                <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+                </svg>
+            </a>
+            <h1 class="text-xl sm:text-2xl font-bold text-secondary">Pinjam Barang</h1>
+        </div>
 
         @if ($errors->any())
             <div class="mb-4 bg-danger/10 border border-danger/30 text-danger text-sm px-4 py-3 rounded-lg">
@@ -167,7 +184,8 @@
                     <div>
                         <label class="block font-semibold text-secondary mb-1">Dokumen Pendukung *</label>
 
-                        <label x-show="!fileName" @dragover.prevent @dragleave.prevent @drop.prevent="
+                        <label x-show="!fileName" @dragover.prevent @dragleave.prevent
+                            @drop.prevent="
                                 $refs.documentInput.files = $event.dataTransfer.files;
                                 const f = $event.dataTransfer.files[0];
                                 fileName = f?.name;
@@ -191,7 +209,8 @@
                             <p class="text-slate-400 text-xs sm:text-sm mt-1">PDF, JPG, PNG (max 5MB)</p>
 
                             <input type="file" name="document" class="hidden" accept=".pdf,.jpg,.jpeg,.png"
-                                x-ref="documentInput" @change="
+                                x-ref="documentInput"
+                                @change="
                                        const f = $event.target.files[0];
                                        fileName = f?.name;
                                        fileSize = f?.size;
@@ -226,8 +245,8 @@
                                     x-text="fileSize ? (fileSize / 1024).toFixed(0) + ' KB' : ''"></p>
                             </div>
                             <div class="flex items-center gap-2 shrink-0">
-                                <svg class="w-5 h-5 text-success" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                    stroke-width="2">
+                                <svg class="w-5 h-5 text-success" viewBox="0 0 24 24" fill="none"
+                                    stroke="currentColor" stroke-width="2">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
                                 </svg>
                                 <button type="button"
@@ -235,7 +254,8 @@
                                     class="text-slate-400 hover:text-danger p-2 -m-2" aria-label="Hapus file">
                                     <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                         stroke-width="2">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                            d="M6 18L18 6M6 6l12 12" />
                                     </svg>
                                 </button>
                             </div>
@@ -254,49 +274,54 @@
             </div>
 
             {{-- Sidebar kanan --}}
-            <div class="space-y-4 sm:space-y-6">
+            <div class="lg:sticky lg:top-6 lg:max-h-[calc(100vh-3rem)] lg:flex lg:flex-col">
                 <button type="button" @click="showCatalogModal = true"
-                    class="w-full flex items-center justify-center gap-2 border-2 border-dashed border-primary text-primary font-semibold py-3.5 sm:py-4 rounded-xl hover:bg-primary/5 transition">
+                    class="w-full flex items-center justify-center gap-2 border-2 border-dashed border-primary text-primary font-semibold py-3.5 sm:py-4 rounded-xl hover:bg-primary/5 transition shrink-0 mb-4 sm:mb-6">
                     <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
                     </svg>
                     Tambah Item
                 </button>
 
-                <template x-for="cartItem in cart" :key="cartItem.id">
-                    <div class="bg-surface rounded-2xl shadow-sm p-4 sm:p-6">
-                        <div class="flex items-center justify-between mb-3 sm:mb-4">
-                            <h3 class="font-bold text-secondary text-sm sm:text-base">Ringkasan Barang</h3>
-                            <button type="button" @click="removeFromCart(cartItem.id)"
-                                class="text-slate-400 hover:text-danger p-2 -m-2" aria-label="Hapus dari keranjang">
-                                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                    stroke-width="2">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-                                </svg>
-                            </button>
+                <div class="space-y-4 sm:space-y-6 lg:overflow-y-auto lg:pr-1">
+                    <template x-for="cartItem in cart" :key="cartItem.id">
+                        <div class="bg-surface rounded-2xl shadow-sm p-4 sm:p-6">
+                            <div class="flex items-center justify-between mb-3 sm:mb-4">
+                                <h3 class="font-bold text-secondary text-sm sm:text-base">Ringkasan Barang</h3>
+                                <button type="button" @click="removeFromCart(cartItem.id)"
+                                    class="text-slate-400 hover:text-danger p-2 -m-2"
+                                    aria-label="Hapus dari keranjang">
+                                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                            d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                </button>
+                            </div>
+                            <div class="space-y-2.5 sm:space-y-3 text-sm">
+                                <div class="flex justify-between">
+                                    <span class="text-slate-500">Nama Barang :</span>
+                                    <span class="font-medium text-secondary text-right"
+                                        x-text="truncate(cartItem.name)"></span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-slate-500">Kategori:</span>
+                                    <span class="font-medium text-secondary" x-text="cartItem.category"></span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-slate-500">Jumlah:</span>
+                                    <span class="font-medium text-secondary"
+                                        x-text="cartItem.quantity + ' unit'"></span>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-slate-500">Status:</span>
+                                    <span
+                                        class="bg-success/10 text-success text-xs font-semibold px-3 py-1 rounded-full">Tersedia</span>
+                                </div>
+                            </div>
                         </div>
-                        <div class="space-y-2.5 sm:space-y-3 text-sm">
-                            <div class="flex justify-between">
-                                <span class="text-slate-500">Nama Barang :</span>
-                                <span class="font-medium text-secondary text-right"
-                                    x-text="truncate(cartItem.name)"></span>
-                            </div>
-                            <div class="flex justify-between">
-                                <span class="text-slate-500">Kategori:</span>
-                                <span class="font-medium text-secondary" x-text="cartItem.category"></span>
-                            </div>
-                            <div class="flex justify-between">
-                                <span class="text-slate-500">Jumlah:</span>
-                                <span class="font-medium text-secondary" x-text="cartItem.quantity + ' unit'"></span>
-                            </div>
-                            <div class="flex justify-between items-center">
-                                <span class="text-slate-500">Status:</span>
-                                <span
-                                    class="bg-success/10 text-success text-xs font-semibold px-3 py-1 rounded-full">Tersedia</span>
-                            </div>
-                        </div>
-                    </div>
-                </template>
+                    </template>
+                </div>
             </div>
         </div>
 
@@ -310,7 +335,8 @@
                     <h2 class="text-xl sm:text-2xl font-bold text-primary">Tambah Barang</h2>
                     <button @click="showCatalogModal = false" class="text-slate-400 hover:text-slate-600 p-2 -m-2"
                         aria-label="Tutup modal">
-                        <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
                         </svg>
                     </button>
@@ -347,12 +373,13 @@
                                 </h4>
                                 <p class="text-sm mb-3">
                                     Stock:
-                                    <span :class="item.stock > 0 ? 'text-success' : 'text-danger'" class="font-semibold"
-                                        x-text="item.stock + ' units'"></span>
+                                    <span :class="item.stock > 0 ? 'text-success' : 'text-danger'"
+                                        class="font-semibold" x-text="item.stock + ' units'"></span>
                                 </p>
                                 <button type="button" @click="item.stock > 0 && openQtyModal(item)"
                                     :disabled="item.stock === 0"
-                                    :class="item.stock === 0 ? 'bg-slate-200 text-slate-400 cursor-not-allowed' : (item.inCartQty > 0 ? 'bg-secondary text-white' : 'bg-primary text-white')"
+                                    :class="item.stock === 0 ? 'bg-slate-200 text-slate-400 cursor-not-allowed' : (item
+                                        .inCartQty > 0 ? 'bg-secondary text-white' : 'bg-primary text-white')"
                                     class="w-full font-semibold py-2.5 rounded-lg">
                                     <span
                                         x-text="item.inCartQty > 0 ? 'Di keranjang (' + item.inCartQty + ')' : 'Tambah'"></span>
@@ -423,11 +450,13 @@
                 </div>
 
                 <h2 class="text-xl sm:text-2xl font-bold text-secondary mb-2">Konfirmasi Peminjaman</h2>
-                <p class="text-sm sm:text-base text-slate-500 mb-5 sm:mb-6">Apakah anda yakin ingin meminjam barang ini?
+                <p class="text-sm sm:text-base text-slate-500 mb-5 sm:mb-6">Apakah anda yakin ingin meminjam barang
+                    ini?
                 </p>
 
                 <div class="bg-slate-50 rounded-xl p-4 sm:p-5 text-left mb-5 sm:mb-6">
-                    <p class="font-semibold text-secondary mb-3 text-sm sm:text-base" x-text="cartItemNames.join(', ')">
+                    <p class="font-semibold text-secondary mb-3 text-sm sm:text-base"
+                        x-text="cartItemNames.join(', ')">
                     </p>
                     <div class="border-t border-slate-200 pt-3 space-y-2 text-sm">
                         <div class="flex justify-between">
