@@ -1,5 +1,14 @@
 <x-app-layout>
-    <h1 class="text-xl sm:text-2xl font-bold text-secondary mb-4 sm:mb-6">Detail Barang</h1>
+    <div class="flex items-center gap-3 mb-4 sm:mb-6">
+        <a href="{{ url()->previous() }}"
+            class="w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center rounded-lg border border-slate-200 bg-surface text-secondary hover:bg-slate-50 transition shrink-0"
+            aria-label="Kembali ke katalog">
+            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+            </svg>
+        </a>
+        <h1 class="text-xl sm:text-2xl font-bold text-secondary">Detail Barang</h1>
+    </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-8 pb-40 lg:pb-0">
 
