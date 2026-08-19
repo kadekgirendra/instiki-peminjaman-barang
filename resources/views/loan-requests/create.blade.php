@@ -483,7 +483,8 @@
             </div>
         </div>
 
-        {{-- Tombol submit — sticky bottom bar, CUMA tampil di mobile --}}
+        {{-- Tombol submit — versi mobile, CUMA tampil di mobile --}}
+
         <div class="lg:hidden fixed inset-x-0 bg-white border-t border-slate-200 p-4 z-30"
             style="bottom: calc(56px + env(safe-area-inset-bottom));">
             <button type="button" @click="attemptSubmit()"
