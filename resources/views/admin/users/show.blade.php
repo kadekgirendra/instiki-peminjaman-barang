@@ -118,9 +118,15 @@
                             </div>
 
                             @if ($trx['total_fine'] > 0)
-                                <p class="text-xs text-danger font-medium mt-2">
-                                    Total denda pengajuan ini: Rp {{ number_format($trx['total_fine'], 0, ',', '.') }}
-                                </p>
+                                <div class="flex items-center justify-between mt-2">
+                                    <p class="text-xs text-danger font-medium">
+                                        Total denda pengajuan ini: Rp {{ number_format($trx['total_fine'], 0, ',', '.') }}
+                                    </p>
+                                    <span
+                                        class="{{ $trx['is_paid'] ? 'bg-success/10 text-success' : 'bg-danger/10 text-danger' }} text-xs font-semibold px-2.5 py-1 rounded-full shrink-0">
+                                        {{ $trx['is_paid'] ? 'Lunas' : 'Belum Dibayar' }}
+                                    </span>
+                                </div>
                             @endif
                         </div>
                     @empty

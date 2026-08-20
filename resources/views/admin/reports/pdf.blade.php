@@ -57,7 +57,7 @@
         }
 
         .summary-table td {
-            width: 20%;
+            width: 33.33%;
             border: 1px solid #e2e8f0;
             padding: 8px 10px;
             text-align: left;
@@ -176,7 +176,7 @@
         <tr>
             <td>
                 <span class="value">{{ $summary['total_transactions'] }}</span>
-                <span class="label">Total Pengajuan</span>
+                <span class="label">Peminjaman Terealisasi</span>
             </td>
             <td>
                 <span class="value">{{ $summary['total_unit'] }}</span>
@@ -184,15 +184,23 @@
             </td>
             <td>
                 <span class="value">{{ $summary['total_peminjam'] }}</span>
-                <span class="label">Peminjam Aktif</span>
+                <span class="label">Total Peminjam</span>
             </td>
+        </tr>
+        <tr>
             <td>
                 <span class="value">{{ $summary['avg_duration'] }} hari</span>
                 <span class="label">Rata-rata Durasi</span>
             </td>
             <td>
-                <span class="value">Rp {{ number_format($summary['total_revenue'], 0, ',', '.') }}</span>
+                <span class="value" style="color: #16a34a;">Rp
+                    {{ number_format($summary['total_revenue'], 0, ',', '.') }}</span>
                 <span class="label">Total Pendapatan</span>
+            </td>
+            <td>
+                <span class="value" style="color: {{ $summary['total_unpaid'] > 0 ? '#dc2626' : '#1A2848' }};">Rp
+                    {{ number_format($summary['total_unpaid'], 0, ',', '.') }}</span>
+                <span class="label">Denda Belum Dibayar</span>
             </td>
         </tr>
     </table>
@@ -234,7 +242,7 @@
                 <th>Unit</th>
                 <th>Frekuensi</th>
                 <th>Durasi Rata-rata</th>
-                <th>Pendapatan</th>
+                <th>Denda</th>
             </tr>
         </thead>
         <tbody>

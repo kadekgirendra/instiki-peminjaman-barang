@@ -36,13 +36,17 @@ class DashboardController extends Controller
         $permintaanMingguLalu = Transaction::whereBetween('created_at', [now()->subDays(14), now()->subDays(7)])->count();
         $permintaanTertundaDelta = $this->percentChange($permintaanMingguLalu, $permintaanMingguIni);
 
-        // ── Total Pendapatan (dari denda saja) ─────────────────
-        // WAJIB pakai scope revenueEligible (booked/completed) — pending/rejected
-        // tidak boleh ikut kehitung. Scope ini sudah ada dari fase sebelumnya tapi
-        // belum pernah dipakai di mana pun.
-        $totalRevenue = Transaction::revenueEligible()->sum('total_fee');
+        // ── Total Pendapatan (dari denda yang SUDAH LUNAS saja) ─
+        // Sengaja pakai whereNotNull('paid_at'), bukan cuma revenueEligible()
+        // sum('total_fee') — denda yang tercatat tapi belum dibayar admin
+        // (paid_at masih null) TIDAK dihitung sebagai pendapatan. Perbandingan
+        // bulan lalu juga dihitung dari tanggal BAYAR (paid_at), bukan tanggal
+        // kembali (returned_at), supaya konsisten dengan definisi "pendapatan"
+        // di atas — uang yang benar-benar masuk pada bulan itu.
+        $totalRevenue = Transaction::revenueEligible()->whereNotNull('paid_at')->sum('total_fee');
         $totalRevenueBulanLalu = Transaction::revenueEligible()
-            ->whereBetween('returned_at', [now()->subMonth()->startOfMonth(), now()->subMonth()->endOfMonth()])
+            ->whereNotNull('paid_at')
+            ->whereBetween('paid_at', [now()->subMonth()->startOfMonth(), now()->subMonth()->endOfMonth()])
             ->sum('total_fee');
         $totalRevenueDelta = $this->percentChange((int) $totalRevenueBulanLalu, (int) $totalRevenue);
 

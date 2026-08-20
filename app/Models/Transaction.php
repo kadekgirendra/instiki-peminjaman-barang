@@ -25,6 +25,7 @@ class Transaction extends Model
         'quantity',
         'status',
         'total_fee',
+        'paid_at',
         'document_path',
         'return_photo',
         'return_note',
@@ -35,6 +36,7 @@ class Transaction extends Model
         'start_date'  => 'date',
         'end_date'    => 'date',
         'returned_at' => 'date',
+        'paid_at'     => 'datetime',
         'return_requested_at' => 'datetime',
     ];
 
@@ -89,5 +91,14 @@ class Transaction extends Model
         }
 
         return false;
+    }
+
+    // Denda dianggap "lunas" kalau memang tidak ada denda (total_fee 0),
+    // atau admin sudah menandainya lunas secara eksplisit lewat paid_at.
+    // Sengaja TIDAK otomatis lunas saat status jadi 'completed' — barang
+    // kembali dan denda terbayar adalah dua kejadian yang berbeda.
+    public function getIsPaidAttribute(): bool
+    {
+        return (float) $this->total_fee <= 0 || $this->paid_at !== null;
     }
 }

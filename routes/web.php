@@ -83,9 +83,15 @@ Route::middleware(['auth', 'admin'])
             ->name('loan-requests.reject');
         Route::patch('/loan-requests/{loanRequest}/complete', [Admin\TransactionController::class, 'complete'])
             ->name('loan-requests.complete');
+        Route::patch('/loan-requests/{loanRequest}/mark-paid', [Admin\TransactionController::class, 'markPaid'])
+            ->name('loan-requests.mark-paid');
 
-        Route::resource('items', Admin\ItemController::class);
-        Route::resource('users', Admin\UserController::class);
+        // ->except([...]) dipakai karena Admin\ItemController tidak punya method show(),
+        // dan Admin\UserController tidak punya method create()/store() — tanpa ini,
+        // Route::resource tetap mendaftarkan rute-rute tsb dan memicu 500
+        // (BadMethodCallException) kalau diakses manual lewat URL.
+        Route::resource('items', Admin\ItemController::class)->except(['show']);
+        Route::resource('users', Admin\UserController::class)->except(['create', 'store']);
 
         Route::get('/laporan', [Admin\ReportController::class, 'index'])->name('reports.index');
         Route::get('/laporan/export', [Admin\ReportController::class, 'export'])->name('reports.export');
