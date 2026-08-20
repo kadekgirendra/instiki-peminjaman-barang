@@ -13,7 +13,7 @@ class ReportController extends Controller
 {
     public function index(Request $request)
     {
-        $range = $request->get('range', '7d');
+        $range = $request->get('range', 'all');
         $category = $request->get('category', 'all');
 
         [$start, $end] = $this->resolveDateRange($range);
@@ -39,7 +39,7 @@ class ReportController extends Controller
 
     public function export(Request $request)
     {
-        $range = $request->get('range', '7d');
+        $range = $request->get('range', 'all');
         $category = $request->get('category', 'all');
 
         [$start, $end] = $this->resolveDateRange($range);
@@ -59,7 +59,7 @@ class ReportController extends Controller
 
             fputcsv($handle, []);
             fputcsv($handle, ['LAPORAN PER PEMINJAM']);
-            fputcsv($handle, ['Nama', 'NIM/NIDN', 'Jumlah Pengajuan', 'Total Unit Dipinjam', 'Total Denda']);
+            fputcsv($handle, ['Nama', 'NIM/NIDN', 'Jumlah Pengajuan', 'Total Unit Dipinjam', 'Total Pendapatan']);
             foreach ($borrowerRows as $row) {
                 fputcsv($handle, [$row['name'], $row['nim_nidn'], $row['total_requests'], $row['total_unit'], $row['total_fine']]);
             }
@@ -73,7 +73,7 @@ class ReportController extends Controller
     // tidak mendukung utility class Tailwind, cuma CSS biasa.
     public function exportPdf(Request $request)
     {
-        $range = $request->get('range', '7d');
+        $range = $request->get('range', 'all');
         $category = $request->get('category', 'all');
 
         [$start, $end] = $this->resolveDateRange($range);
@@ -152,7 +152,10 @@ class ReportController extends Controller
                     'total_unit'    => $group->sum('quantity'),
                     'frequency'     => $group->count(),
                     'avg_duration'  => (int) round($avgDays),
-                    'total_revenue' => (float) $group->sum('total_fee'),
+                    // Cuma denda yang sudah ditandai lunas (paid_at terisi) yang
+                    // dihitung sebagai "pendapatan" — konsisten dengan kartu
+                    // Total Pendapatan di Dashboard.
+                    'total_revenue' => (float) $group->filter(fn($trx) => $trx->paid_at !== null)->sum('total_fee'),
                 ];
             })
             ->sortByDesc('total_unit')
@@ -173,7 +176,9 @@ class ReportController extends Controller
                     'nim_nidn'       => $user->nim_nidn,
                     'total_requests' => $group->pluck('loan_request_id')->unique()->count(),
                     'total_unit'     => $group->sum('quantity'),
-                    'total_fine'     => (float) $group->sum('total_fee'),
+                    // Sama seperti laporan per barang: cuma yang sudah lunas
+                    // yang dihitung, supaya totalnya nyambung ke Total Pendapatan.
+                    'total_fine'     => (float) $group->filter(fn($trx) => $trx->paid_at !== null)->sum('total_fee'),
                 ];
             })
             ->sortByDesc('total_unit')
@@ -187,10 +192,17 @@ class ReportController extends Controller
 
         $avgDuration = $rows->avg(fn($trx) => max(1, $trx->start_date->diffInDays($trx->end_date)));
 
+        // Piutang: denda yang sudah tercatat (total_fee > 0) tapi belum
+        // ditandai lunas (paid_at masih null) — supaya "Total Pendapatan"
+        // (uang yang sudah masuk) dan "Belum Dibayar" (uang yang masih
+        // harus ditagih) sama-sama kelihatan dan saling melengkapi.
+        $totalUnpaid = (float) $rows->filter(fn($trx) => $trx->paid_at === null)->sum('total_fee');
+
         return [
             'total_transactions' => $rows->pluck('loan_request_id')->unique()->count(),
             'total_unit'         => $rows->sum('quantity'),
-            'total_revenue'      => (float) $rows->sum('total_fee'),
+            'total_revenue'      => (float) $rows->filter(fn($trx) => $trx->paid_at !== null)->sum('total_fee'),
+            'total_unpaid'       => $totalUnpaid,
             'total_peminjam'     => $rows->pluck('user_id')->unique()->count(),
             'avg_duration'       => $rows->isEmpty() ? 0 : (int) round($avgDuration),
         ];

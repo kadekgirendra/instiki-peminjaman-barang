@@ -47,13 +47,24 @@ class TransactionController extends Controller
                 ? $group->first()->item->name . ' - ' . $group->first()->item->category
                 : $group->pluck('item.name')->implode(', ');
 
-            $itemsList = $group->map(fn($trx) => [
-                'id'          => $trx->id,
-                'name'        => $trx->item->name,
-                'quantity'    => $trx->quantity,
-                'fine'        => (float) $trx->total_fee,
-                'returned_at' => $trx->returned_at?->translatedFormat('j M Y'),
-            ])->values();
+            $itemsList = $group->map(function ($trx) {
+                // Saran denda otomatis: cuma relevan untuk barang yang MASIH 'booked'
+                // dan sudah lewat jatuh tempo (belum ditandai selesai). Dihitung dari
+                // tarif harian barang (Item::daily_fine_rate) x jumlah hari telat SAAT
+                // INI — admin tetap bisa mengubah nilainya secara manual di form.
+                $itemDaysLate = ($trx->status === 'booked' && now()->toDateString() > $trx->end_date->toDateString())
+                    ? (int) $trx->end_date->diffInDays(now())
+                    : 0;
+
+                return [
+                    'id'             => $trx->id,
+                    'name'           => $trx->item->name,
+                    'quantity'       => $trx->quantity,
+                    'fine'           => (float) $trx->total_fee,
+                    'suggested_fine' => $itemDaysLate * (int) $trx->item->daily_fine_rate,
+                    'returned_at'    => $trx->returned_at?->translatedFormat('j M Y'),
+                ];
+            })->values();
 
             // Total denda seluruh barang dalam permintaan ini (cuma keisi kalau
             // sudah completed — sebelum itu total_fee semua barang masih 0).
@@ -113,6 +124,16 @@ class TransactionController extends Controller
                 $daysLateAtReturn = (int) $latestEndDate->diffInDays($returnedAt);
             }
 
+            // Status pembayaran denda — SENGAJA terpisah dari status 'completed'.
+            // Barang bisa saja sudah kembali (completed) tapi dendanya belum dibayar.
+            // Dianggap lunas kalau memang tidak ada denda sama sekali, atau semua
+            // barang yang completed dalam pengajuan ini sudah ditandai admin lewat
+            // paid_at (lihat Admin\TransactionController::markPaid).
+            $completedItems = $group->where('status', 'completed');
+            $isPaid = $totalFine <= 0
+                || ($completedItems->isNotEmpty() && $completedItems->every(fn($trx) => $trx->paid_at !== null));
+            $paidAt = $completedItems->pluck('paid_at')->filter()->max();
+
             return [
                 'loan_request_id'      => $loanRequest->id,
                 'user_name'            => $user->name,
@@ -129,6 +150,9 @@ class TransactionController extends Controller
                 'is_overdue'           => $daysLate !== null,
                 'days_late'            => $daysLate,
                 'total_fine'           => $totalFine,
+                'is_paid'              => $isPaid,
+                'paid_at'              => $paidAt?->translatedFormat('j M Y, H:i'),
+                'mark_paid_url'        => route('admin.loan-requests.mark-paid', $loanRequest->id),
                 'returned_at'          => $returnedAt?->translatedFormat('j M Y'),
                 'was_returned_late'    => $wasReturnedLate,
                 'days_late_at_return'  => $daysLateAtReturn,
@@ -228,5 +252,26 @@ class TransactionController extends Controller
         }
 
         return back()->with('success', 'Permintaan ditandai selesai.');
+    }
+
+    public function markPaid(LoanRequest $loanRequest)
+    {
+        $completedItems = $loanRequest->transactions()->where('status', 'completed')->get();
+
+        if ($completedItems->isEmpty()) {
+            return back()->withErrors([
+                'error' => 'Permintaan ini belum ditandai selesai, belum ada denda yang bisa dilunasi.',
+            ]);
+        }
+
+        if ((float) $completedItems->sum('total_fee') <= 0) {
+            return back()->withErrors([
+                'error' => 'Permintaan ini tidak memiliki denda yang perlu dibayar.',
+            ]);
+        }
+
+        $loanRequest->transactions()->where('status', 'completed')->update(['paid_at' => now()]);
+
+        return back()->with('success', 'Denda ditandai lunas.');
     }
 }

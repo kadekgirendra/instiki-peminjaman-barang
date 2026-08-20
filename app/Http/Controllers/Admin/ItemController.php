@@ -117,11 +117,12 @@ class ItemController extends Controller
     protected function validated(Request $request): array
     {
         return $request->validate([
-            'name'        => 'required|string|max:255',
-            'category'    => 'required|string|max:100',
-            'description' => 'nullable|string',
-            'total_stock' => 'required|integer|min:0',
-            'image'       => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+            'name'             => 'required|string|max:255',
+            'category'         => 'required|string|max:100',
+            'description'      => 'nullable|string',
+            'total_stock'      => 'required|integer|min:0',
+            'daily_fine_rate'  => 'required|integer|min:0',
+            'image'            => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
         ]);
     }
 }

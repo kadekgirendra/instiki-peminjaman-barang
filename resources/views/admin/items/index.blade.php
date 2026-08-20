@@ -6,10 +6,15 @@
         </div>
 
         <div class="flex items-center gap-3">
-            <form method="GET">
-                @if (request('category'))
-                    <input type="hidden" name="category" value="{{ request('category') }}">
-                @endif
+            <form method="GET" class="flex items-center gap-3">
+                <select name="category" onchange="this.form.submit()"
+                    class="px-4 py-2.5 rounded-full border-0 bg-white shadow-sm text-sm focus:outline-none focus:ring-2 focus:ring-primary/30">
+                    <option value="all" @selected(request('category', 'all') === 'all')>Semua Kategori</option>
+                    @foreach ($categories as $c)
+                        <option value="{{ $c }}" @selected(request('category') === $c)>{{ $c }}</option>
+                    @endforeach
+                </select>
+
                 <div class="relative">
                     <svg class="w-4 h-4 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2" viewBox="0 0 24 24"
                         fill="none" stroke="currentColor" stroke-width="2">

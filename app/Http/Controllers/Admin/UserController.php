@@ -67,6 +67,16 @@ class UserController extends Controller
                     'fine'     => (float) $trx->total_fee,
                 ])->values();
 
+                $totalFine = (float) $group->sum('total_fee');
+
+                // Status pembayaran — sama definisinya dengan yang dipakai di
+                // Admin\TransactionController::index(): lunas kalau memang tidak
+                // ada denda, atau semua barang completed dalam pengajuan ini
+                // sudah ditandai admin lewat paid_at.
+                $completedItems = $group->where('status', 'completed');
+                $isPaid = $totalFine <= 0
+                    || ($completedItems->isNotEmpty() && $completedItems->every(fn($trx) => $trx->paid_at !== null));
+
                 return [
                     'loan_request_id'   => $loanRequest->id,
                     'items_detail'      => $itemsDetail,
@@ -76,7 +86,8 @@ class UserController extends Controller
                     'status'            => $status,
                     'status_label'      => $statusMeta[$status]['label'] ?? $status,
                     'status_badge'      => $statusMeta[$status]['badge'] ?? 'bg-slate-100 text-slate-500',
-                    'total_fine'        => (float) $group->sum('total_fee'),
+                    'total_fine'        => $totalFine,
+                    'is_paid'           => $isPaid,
                     'jumlah_jenis'      => $group->count(),
                 ];
             })

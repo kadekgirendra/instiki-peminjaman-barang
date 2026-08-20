@@ -41,7 +41,7 @@
             @php $isActive = request()->routeIs($item['route']); @endphp
             <a href="{{ route($item['route']) }}"
               class="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition
-                                                {{ $isActive ? 'bg-primary text-white' : 'text-slate-300 hover:bg-white/5' }}">
+                                                  {{ $isActive ? 'bg-primary text-white' : 'text-slate-300 hover:bg-white/5' }}">
 
               @if ($item['icon'] === 'grid')
                 <svg class="w-5 h-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -180,7 +180,7 @@
               @endforelse
             </div>
 
-            <a href="{{ route('transactions.index') }}"
+            <a href="{{ route('admin.transactions.index') }}"
               class="block text-center bg-slate-50 text-secondary font-semibold py-4 hover:bg-slate-100 transition">
               Lihat semua notifikasi
             </a>

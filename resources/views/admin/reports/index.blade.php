@@ -59,9 +59,9 @@
     </form>
 
     {{-- Kartu Ringkasan --}}
-    <div class="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
+    <div class="grid grid-cols-2 lg:grid-cols-6 gap-4 mb-6">
         <div class="bg-surface rounded-2xl shadow-sm p-5">
-            <p class="text-slate-400 text-xs font-medium mb-1">Total Pengajuan</p>
+            <p class="text-slate-400 text-xs font-medium mb-1">Peminjaman Terealisasi</p>
             <p class="text-2xl font-bold text-secondary">{{ $summary['total_transactions'] }}</p>
         </div>
         <div class="bg-surface rounded-2xl shadow-sm p-5">
@@ -69,7 +69,7 @@
             <p class="text-2xl font-bold text-secondary">{{ $summary['total_unit'] }}</p>
         </div>
         <div class="bg-surface rounded-2xl shadow-sm p-5">
-            <p class="text-slate-400 text-xs font-medium mb-1">Peminjam Aktif</p>
+            <p class="text-slate-400 text-xs font-medium mb-1">Total Peminjam</p>
             <p class="text-2xl font-bold text-secondary">{{ $summary['total_peminjam'] }}</p>
         </div>
         <div class="bg-surface rounded-2xl shadow-sm p-5">
@@ -79,7 +79,13 @@
         </div>
         <div class="bg-surface rounded-2xl shadow-sm p-5">
             <p class="text-slate-400 text-xs font-medium mb-1">Total Pendapatan</p>
-            <p class="text-2xl font-bold text-secondary">Rp {{ number_format($summary['total_revenue'], 0, ',', '.') }}
+            <p class="text-2xl font-bold text-success">Rp {{ number_format($summary['total_revenue'], 0, ',', '.') }}
+            </p>
+        </div>
+        <div class="bg-surface rounded-2xl shadow-sm p-5">
+            <p class="text-slate-400 text-xs font-medium mb-1">Denda Belum Dibayar</p>
+            <p class="text-2xl font-bold {{ $summary['total_unpaid'] > 0 ? 'text-danger' : 'text-secondary' }}">
+                Rp {{ number_format($summary['total_unpaid'], 0, ',', '.') }}
             </p>
         </div>
     </div>
@@ -135,7 +141,7 @@
                             <th class="py-3 px-6 font-semibold">Unit</th>
                             <th class="py-3 px-6 font-semibold">Frekuensi</th>
                             <th class="py-3 px-6 font-semibold">Durasi Rata&sup2;</th>
-                            <th class="py-3 px-6 font-semibold">Pendapatan</th>
+                            <th class="py-3 px-6 font-semibold">Denda</th>
                         </tr>
                     </thead>
                     <tbody>

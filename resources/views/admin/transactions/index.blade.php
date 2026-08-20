@@ -87,7 +87,7 @@
                     $query = array_filter(['status' => $value ?: null, 'search' => request('search')]);
                 @endphp
                 <a href="{{ route('admin.transactions.index', $query) }}" class="shrink-0 flex items-center gap-1.5 text-sm font-semibold px-4 py-2 rounded-full border transition
-                                        {{ $isActive ? $tab['active'] : $tab['inactive'] }}">
+                                                {{ $isActive ? $tab['active'] : $tab['inactive'] }}">
                     {{ $tab['label'] }}
                     <span
                         class="text-xs px-1.5 py-0.5 rounded-full {{ $isActive ? $tab['badge_active'] : $tab['badge_inactive'] }}">
@@ -151,6 +151,12 @@
                                     </span>
                                     @if ($g['was_returned_late'])
                                         <span class="block text-xs text-danger/70">Telat {{ $g['days_late_at_return'] }} hari</span>
+                                    @endif
+                                    @if ($g['total_fine'] > 0)
+                                        <span
+                                            class="block text-xs {{ $g['is_paid'] ? 'text-success' : 'text-danger font-semibold' }}">
+                                            {{ $g['is_paid'] ? 'Lunas' : 'Belum dibayar' }}
+                                        </span>
                                     @endif
                                 @else
                                     <span class="text-slate-300">—</span>
@@ -356,6 +362,9 @@
                                     <div>
                                         <label class="block text-sm font-medium text-secondary mb-1.5">Denda per Barang
                                             (Rp) &mdash; isi kalau ada yang telat/rusak</label>
+                                        <p class="text-xs text-slate-400 mb-2">Nilai sudah dihitung otomatis dari
+                                            tarif denda/hari barang &times; jumlah hari telat saat ini. Silakan ubah
+                                            kalau perlu (mis. barang rusak, atau kondisi khusus lain).</p>
                                         <div class="border border-slate-200 rounded-xl overflow-hidden">
                                             <template x-for="barang in (selected ? selected.items_list : [])"
                                                 :key="barang.id">
@@ -364,7 +373,7 @@
                                                     <span class="text-sm text-secondary"
                                                         x-text="barang.name + ' (x' + barang.quantity + ')'"></span>
                                                     <input type="number" :name="'fines[' + barang.id + ']'" min="0"
-                                                        step="1000" value="0"
+                                                        step="1000" :value="barang.suggested_fine"
                                                         class="w-32 rounded-lg border border-slate-200 px-3 py-1.5 text-sm text-right focus:outline-none focus:ring-2 focus:ring-primary/30">
                                                 </div>
                                             </template>
@@ -426,6 +435,29 @@
                                     <span class="text-sm font-bold"
                                         :class="selected.total_fine > 0 ? 'text-danger' : 'text-success'"
                                         x-text="'Rp' + new Intl.NumberFormat('id-ID').format(selected.total_fine)"></span>
+                                </div>
+
+                                {{-- Status pembayaran denda — terpisah dari status pengembalian barang.
+                                Cuma relevan kalau total_fine > 0. --}}
+                                <div x-show="selected.total_fine > 0" class="mt-3">
+                                    <div class="flex items-center justify-between rounded-xl px-4 py-3"
+                                        :class="selected.is_paid ? 'bg-success/10' : 'bg-danger/10'">
+                                        <div>
+                                            <span class="text-sm font-semibold"
+                                                :class="selected.is_paid ? 'text-success' : 'text-danger'"
+                                                x-text="selected.is_paid ? 'Lunas' : 'Belum Dibayar'"></span>
+                                            <p class="text-xs text-slate-400 mt-0.5" x-show="selected.is_paid"
+                                                x-text="'Dibayar ' + selected.paid_at"></p>
+                                        </div>
+                                        <form :action="selected.mark_paid_url" method="POST" x-show="!selected.is_paid">
+                                            @csrf
+                                            @method('PATCH')
+                                            <button type="submit"
+                                                class="bg-success text-white text-sm font-semibold px-4 py-2 rounded-full hover:opacity-90 transition">
+                                                Tandai Lunas
+                                            </button>
+                                        </form>
+                                    </div>
                                 </div>
                             </div>
                         </div>

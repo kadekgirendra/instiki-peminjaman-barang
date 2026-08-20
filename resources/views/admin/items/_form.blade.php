@@ -82,6 +82,17 @@
             </div>
 
             <div>
+                <label class="block text-sm font-semibold text-secondary mb-1.5">Denda per Hari Telat (Rp)</label>
+                <input type="number" name="daily_fine_rate" min="0" step="500"
+                    value="{{ old('daily_fine_rate', $item->daily_fine_rate ?? 0) }}" required placeholder="0"
+                    class="w-full sm:w-1/2 rounded-xl border border-slate-200 bg-background px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:bg-white transition">
+                <p class="text-xs text-slate-400 mt-1">Dipakai sebagai saran denda otomatis saat barang ini dikembalikan
+                    telat. Isi 0 kalau tidak dikenai denda.</p>
+                @error('daily_fine_rate')
+                <p class="text-danger text-xs mt-1">{{ $message }}</p> @enderror
+            </div>
+
+            <div>
                 <label class="block text-sm font-semibold text-secondary mb-1.5">Deskripsi</label>
                 <textarea name="description" rows="4" placeholder="Deskripsi singkat barang"
                     class="w-full rounded-xl border border-slate-200 bg-background px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:bg-white transition resize-none">{{ old('description', $item->description ?? '') }}</textarea>
