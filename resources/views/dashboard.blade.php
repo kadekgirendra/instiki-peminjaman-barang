@@ -59,7 +59,8 @@
             </a>
         </div>
 
-        {{-- Desktop: layout asli, sejajar horizontal --}}
+        {{-- Desktop: ikon di samping, stack horizontal --}}
+
         <div class="hidden sm:flex items-center justify-between">
             <div>
                 <h2 class="text-white text-xl font-bold mb-2">Quick Action</h2>
