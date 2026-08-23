@@ -86,7 +86,7 @@
 
         {{-- Filter --}}
         <form method="GET" class="bg-surface rounded-2xl shadow-sm p-5 mb-6 flex flex-wrap items-center gap-3">
-            <div class="relative flex-1 min-w-[220px]">
+            <div class="relative flex-1 min-w-55">
                 <svg class="w-4 h-4 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2" viewBox="0 0 24 24"
                     fill="none" stroke="currentColor" stroke-width="2">
                     <circle cx="11" cy="11" r="7" />
