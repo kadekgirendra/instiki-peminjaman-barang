@@ -121,7 +121,7 @@
             <div id="sirkulasi-calendar" data-events='@json($events)'></div>
         </div>
 
-        {{-- Legenda --}}
+        {{-- Keterangan warna label --}}
         <div class="flex items-center flex-wrap gap-5 mt-4 text-xs text-slate-500">
             <span class="flex items-center gap-1.5">
                 <span class="w-3 h-3 rounded-sm bg-info inline-block"></span>
