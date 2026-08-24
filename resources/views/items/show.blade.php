@@ -12,7 +12,7 @@
 
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-8 pb-40 lg:pb-0">
 
-        {{-- Gambar barang --}}
+        {{-- picture items --}}
         <div class="bg-surface rounded-2xl shadow-sm p-4 sm:p-6 flex items-center justify-center h-64 sm:h-105">
             @if ($item->image)
                 <img src="{{ asset('storage/' . $item->image) }}" class="h-full w-full object-contain"
@@ -46,7 +46,7 @@
                 </div>
             </div>
 
-            {{-- Deskripsi — collapsible khusus mobile --}}
+            {{-- collapsible description for mobile --}}
             <div x-data="{ expanded: false }" class="bg-surface rounded-2xl shadow-sm p-4 sm:p-6 mb-4 sm:mb-6">
                 <h3 class="font-semibold text-secondary text-base sm:text-lg mb-3">Deskripsi</h3>
                 <p class="text-sm sm:text-base text-slate-600 leading-relaxed"
@@ -58,7 +58,7 @@
                 </button>
             </div>
 
-            {{-- Tombol Pinjam — versi normal, CUMA tampil di desktop --}}
+            {{-- button pinjam for desktop --}}
             <div class="hidden lg:block">
                 @if ($availableStock > 0)
                     <button type="button" @click="showQtyModal = true; quantity = 1"
