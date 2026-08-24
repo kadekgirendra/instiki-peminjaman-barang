@@ -15,7 +15,7 @@
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-        {{-- Kartu profil user --}}
+        {{-- card user profile --}}
         <div class="bg-surface rounded-2xl shadow-sm p-7">
             <div class="flex items-center gap-4 mb-6">
                 <div
