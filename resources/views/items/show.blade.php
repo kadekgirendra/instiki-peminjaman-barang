@@ -130,7 +130,8 @@
                 </div>
             </div>
 
-            {{-- Tombol Pinjam — sticky bottom bar, CUMA tampil di mobile --}}
+            {{-- Tombol Pinjam — versi mobile --}}
+
             <div class="lg:hidden fixed inset-x-0 bg-white border-t border-slate-200 p-4 z-30"
                 style="bottom: calc(56px + env(safe-area-inset-bottom));">
                 @if ($availableStock > 0)

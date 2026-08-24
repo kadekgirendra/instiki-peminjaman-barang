@@ -90,7 +90,7 @@
             </form>
         </div>
 
-        {{-- Sidebar kanan — Ringkasan Barang --}}
+        {{-- Ringkasan Barang (side bar) --}}
         <div>
             <div class="bg-surface rounded-2xl shadow-sm p-5 sm:p-6">
                 <h2 class="text-base sm:text-lg font-bold text-secondary mb-4 sm:mb-5">Ringkasan Barang</h2>
@@ -138,7 +138,7 @@
         </div>
     </div>
 
-    {{-- Tombol submit — sticky bottom bar, CUMA tampil di mobile --}}
+    {{-- sticky button for mobile --}}
     <div class="lg:hidden fixed inset-x-0 bg-white border-t border-slate-200 p-4 z-30"
         style="bottom: calc(56px + env(safe-area-inset-bottom));">
         <button type="submit" form="returnForm"
