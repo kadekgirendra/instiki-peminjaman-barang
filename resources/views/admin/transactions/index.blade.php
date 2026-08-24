@@ -132,7 +132,7 @@
                                 <p class="font-semibold text-secondary">{{ $g['user_name'] }}</p>
                                 <p class="text-xs text-info">{{ $g['user_nim'] }}</p>
                             </td>
-                            <td class="py-4 px-6 text-slate-600 max-w-[180px] truncate" title="{{ $g['items_label'] }}">
+                            <td class="py-4 px-6 text-slate-600 max-w-45 truncate" title="{{ $g['items_label'] }}">
                                 {{ $g['items_label_short'] }}
                             </td>
                             <td class="py-4 px-6 text-slate-500 whitespace-nowrap">{{ $g['tanggal_permintaan'] }}</td>
