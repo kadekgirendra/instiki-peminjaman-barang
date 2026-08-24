@@ -202,7 +202,7 @@
     {{-- Grafik Tren Peminjaman (TAMBAHAN BARU) --}}
     <div class="bg-surface rounded-2xl shadow-sm p-6 mb-6 mt-6">
         <h2 class="font-bold text-secondary mb-4">Tren Peminjaman (7 Hari Terakhir)</h2>
-        <div x-data="loanTrendChart()" x-init="initChart()" class="relative h-[280px] w-full">
+        <div x-data="loanTrendChart()" x-init="initChart()" class="relative h-70 w-full">
             <canvas id="trendChart"></canvas>
         </div>
     </div>
