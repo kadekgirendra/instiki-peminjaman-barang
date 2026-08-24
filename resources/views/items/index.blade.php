@@ -8,7 +8,7 @@
             {{-- Judul --}}
             <h1 class="text-2xl font-bold text-secondary mb-4 lg:mb-0 lg:inline">Katalog Barang</h1>
 
-            {{-- Baris search + tombol filter (mobile) / search + kategori (desktop) --}}
+            {{-- baris search + filter (desktop) --}}
             <div class="flex items-center gap-3 mb-4 lg:mb-6 lg:float-right lg:-mt-1">
                 <div class="relative flex-1 lg:flex-none lg:w-64">
                     <svg class="w-5 h-5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" viewBox="0 0 24 24"
