@@ -215,7 +215,7 @@
                 Alpine.data('loanTrendChart', () => ({
                     initChart() {
                         const ctx = document.getElementById('trendChart').getContext('2d');
-                        
+
                         const labels = @json($chartLabels);
                         const data = @json($chartData);
 
