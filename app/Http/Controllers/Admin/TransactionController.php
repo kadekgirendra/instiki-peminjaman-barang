@@ -7,6 +7,7 @@ use App\Models\LoanRequest;
 use App\Models\Transaction;
 use App\Services\AvailabilityService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class TransactionController extends Controller
 {
@@ -184,7 +185,7 @@ class TransactionController extends Controller
         // — dipakai kartu Dashboard (misal "Pinjaman Aktif" -> ?status=booked) DAN tab
         // filter di halaman ini sendiri. 'late' = booked yang sudah lewat end_date saja
         // (bukan semua booked), dipakai link "Pengembalian Terlambat" dari Dashboard.
-        $statusFilter = $request->get('status');
+        $statusFilter = $request->input('status');
 
         if ($statusFilter === 'late') {
             $groups = $groups->where('status', 'booked')->where('is_overdue', true)->values();
@@ -196,31 +197,54 @@ class TransactionController extends Controller
     }
 
     public function approve(LoanRequest $loanRequest)
-    {
-        $pendingItems = $loanRequest->transactions()->where('status', 'pending')->with('item')->get();
+{
+    try {
+        DB::transaction(function () use ($loanRequest) {
+            // lockForUpdate() di sini mengunci baris transaksi 'pending' milik
+            // pengajuan ini — kalau ada 2 klik approve nyaris bersamaan untuk
+            // pengajuan yang SAMA, yang kedua menunggu sampai yang pertama
+            // selesai, lalu akan menemukan pendingItems sudah kosong.
+            $pendingItems = $loanRequest->transactions()
+                ->where('status', 'pending')
+                ->with('item')
+                ->lockForUpdate()
+                ->get();
 
-        if ($pendingItems->isEmpty()) {
-            return back()->withErrors(['error' => 'Permintaan ini sudah diproses sebelumnya.']);
-        }
-
-        // WAJIB re-check ketersediaan tiap barang sebelum menyetujui seluruh permintaan
-        foreach ($pendingItems as $trx) {
-            if (! $this->availability->isAvailable(
-                $trx->item,
-                $trx->start_date->toDateString(),
-                $trx->end_date->toDateString(),
-                $trx->quantity
-            )) {
-                return back()->withErrors([
-                    'error' => 'Stok "' . $trx->item->name . '" sudah terpakai transaksi lain di rentang tanggal tersebut.',
-                ]);
+            if ($pendingItems->isEmpty()) {
+                throw new \RuntimeException('Permintaan ini sudah diproses sebelumnya.');
             }
-        }
 
-        $loanRequest->transactions()->where('status', 'pending')->update(['status' => 'booked']);
+            // Kunci baris Item terkait, urut ID ascending (lihat
+            // AvailabilityService::lockItems). Ini yang menutup celah race
+            // condition utama: dua pengajuan BEDA yang berebut barang yang
+            // SAMA tidak bisa lagi lolos cek stok secara bersamaan.
+            $itemIds = $pendingItems->pluck('item_id')->unique()->values()->all();
+            $lockedItems = $this->availability->lockItems($itemIds);
 
-        return back()->with('success', 'Permintaan berhasil disetujui.');
+            foreach ($pendingItems as $trx) {
+                $item = $lockedItems[$trx->item_id];
+
+                if (! $this->availability->isAvailable(
+                    $item,
+                    $trx->start_date->toDateString(),
+                    $trx->end_date->toDateString(),
+                    $trx->quantity,
+                    lock: true
+                )) {
+                    throw new \RuntimeException(
+                        'Stok "' . $item->name . '" sudah terpakai transaksi lain di rentang tanggal tersebut.'
+                    );
+                }
+            }
+
+            $loanRequest->transactions()->where('status', 'pending')->update(['status' => 'booked']);
+        });
+    } catch (\RuntimeException $e) {
+        return back()->withErrors(['error' => $e->getMessage()]);
     }
+
+    return back()->with('success', 'Permintaan berhasil disetujui.');
+}
 
     public function reject(LoanRequest $loanRequest)
     {
