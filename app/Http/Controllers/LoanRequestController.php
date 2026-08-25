@@ -12,7 +12,9 @@ use Illuminate\Support\Facades\DB;
 
 class LoanRequestController extends Controller
 {
-    public function __construct(protected AvailabilityService $availability) {}
+    public function __construct(protected AvailabilityService $availability)
+    {
+    }
 
     public function create()
     {
@@ -57,42 +59,65 @@ class LoanRequestController extends Controller
             return back()->withErrors(['cart' => 'Keranjang peminjaman kosong.']);
         }
 
-        $items = Item::whereIn('id', array_keys($cart))->get();
-
-        foreach ($items as $item) {
-            $qty = $cart[$item->id];
-
-            if (!$this->availability->isAvailable($item, $validated['start_date'], $validated['end_date'], $qty)) {
-                return back()->withErrors([
-                    'cart' => "Stok \"{$item->name}\" tidak mencukupi untuk jumlah/tanggal yang dipilih.",
-                ]);
-            }
-        }
-
         $documentPath = $request->file('document')->store('documents', 'public');
 
-        DB::transaction(function () use ($validated, $items, $cart, $documentPath) {
-            $loanRequest = LoanRequest::create([
-                'user_id' => Auth::id(),
-                'start_date' => $validated['start_date'],
-                'end_date' => $validated['end_date'],
-                'purpose' => $validated['purpose'],
-                'document_path' => $documentPath,
-            ]);
+        try {
+            // $items di-return dari dalam transaction, supaya bisa dipakai lagi
+            // di luar untuk pesan sukses (loan_items_summary) tanpa query ulang.
+            $items = DB::transaction(function () use ($validated, $cart, $documentPath) {
+                // Kunci baris Item terkait (urut ID) SEBELUM cek ketersediaan —
+                // mencegah dua submit yang bersaing untuk barang yang sama lolos
+                // cek stok secara bersamaan.
+                $lockedItems = $this->availability->lockItems(array_keys($cart));
 
-            foreach ($items as $item) {
-                Transaction::create([
-                    'loan_request_id' => $loanRequest->id,
+                foreach ($lockedItems as $item) {
+                    $qty = $cart[$item->id];
+
+                    if (
+                        !$this->availability->isAvailable(
+                            $item,
+                            $validated['start_date'],
+                            $validated['end_date'],
+                            $qty,
+                            lock: true
+                        )
+                    ) {
+                        throw new \RuntimeException(
+                            "Stok \"{$item->name}\" tidak mencukupi untuk jumlah/tanggal yang dipilih."
+                        );
+                    }
+                }
+
+                $loanRequest = LoanRequest::create([
                     'user_id' => Auth::id(),
-                    'item_id' => $item->id,
                     'start_date' => $validated['start_date'],
                     'end_date' => $validated['end_date'],
-                    'purpose' => $validated['purpose'] ?? '-',
-                    'quantity' => $cart[$item->id],
-                    'status' => 'pending',
+                    'purpose' => $validated['purpose'],
+                    'document_path' => $documentPath,
                 ]);
-            }
-        });
+
+                foreach ($lockedItems as $item) {
+                    Transaction::create([
+                        'loan_request_id' => $loanRequest->id,
+                        'user_id' => Auth::id(),
+                        'item_id' => $item->id,
+                        'start_date' => $validated['start_date'],
+                        'end_date' => $validated['end_date'],
+                        'purpose' => $validated['purpose'] ?? '-',
+                        'quantity' => $cart[$item->id],
+                        'status' => 'pending',
+                    ]);
+                }
+
+                return $lockedItems;
+            });
+        } catch (\RuntimeException $e) {
+            // Booking gagal (stok tidak cukup) — hapus dokumen yang sudah
+            // terlanjur ter-upload supaya tidak jadi file sampah di storage.
+            \Storage::disk('public')->delete($documentPath);
+
+            return back()->withErrors(['cart' => $e->getMessage()]);
+        }
 
         session()->forget('loan_cart');
 
