@@ -2,16 +2,14 @@
 
 namespace Database\Factories;
 
-use App\Models\Item;
 use App\Models\LoanRequest;
-use App\Models\Transaction;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends Factory<Transaction>
+ * @extends Factory<LoanRequest>
  */
-class TransactionFactory extends Factory
+class LoanRequestFactory extends Factory
 {
     /**
      * Define the model's default state.
@@ -23,15 +21,11 @@ class TransactionFactory extends Factory
         $startDate = $this->faker->dateTimeBetween('now', '+1 week');
 
         return [
-            'loan_request_id' => LoanRequest::factory(),
             'user_id' => User::factory(),
-            'item_id' => Item::factory(),
             'start_date' => $startDate->format('Y-m-d'),
             'end_date' => (clone $startDate)->modify('+3 days')->format('Y-m-d'),
             'purpose' => $this->faker->sentence(),
-            'quantity' => $this->faker->numberBetween(1, 3),
-            'status' => $this->faker->randomElement(['pending', 'booked', 'completed', 'rejected']),
-            'total_fee' => 0,
+            'document_path' => 'documents/dummy-test-document.pdf',
         ];
     }
 }
