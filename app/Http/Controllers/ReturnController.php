@@ -3,14 +3,14 @@
 namespace App\Http\Controllers;
 use App\Models\LoanRequest;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
+
 
 class ReturnController extends Controller
 {
     public function create(LoanRequest $loanRequest)
     {
         // Pastikan loan request ini milik user yang login
-        abort_unless($loanRequest->user_id === Auth::id(), 403);
+        $this->authorize('returnItem', $loanRequest);
 
         $transactions = $loanRequest->transactions()->where('status', 'booked')->get();
 
@@ -21,7 +21,7 @@ class ReturnController extends Controller
 
     public function store(Request $request, LoanRequest $loanRequest)
     {
-        abort_unless($loanRequest->user_id === Auth::id(), 403);
+        $this->authorize('returnItem', $loanRequest);
 
         $validated = $request->validate([
             'photo' => 'required|image|mimes:jpg,jpeg,png|max:5120',

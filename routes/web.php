@@ -18,7 +18,7 @@ Route::middleware('guest')->group(function () {
 
     // Register
     Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
-    Route::post('/register', [AuthController::class, 'register']);
+    Route::post('/register', [AuthController::class, 'register'])->middleware('throttle:5,1');
 
     // Login
     Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
@@ -44,17 +44,17 @@ Route::middleware(['auth', 'not-admin'])->group(function () {
     Route::get('/items/{item}/calendar-data', [ItemController::class, 'calendarData'])
         ->name('items.calendar-data');
 
-    Route::post('/loan-cart/add', [CartController::class, 'add'])->name('loan-cart.add');
+    Route::post('/loan-cart/add', [CartController::class, 'add'])->name('loan-cart.add')->middleware('throttle:30,1');
     Route::delete('/loan-cart/{item}', [CartController::class, 'remove'])->name('loan-cart.remove');
 
     Route::get('/loan-requests/create', [LoanRequestController::class, 'create'])->name('loan-requests.create');
-    Route::post('/loan-requests', [LoanRequestController::class, 'store'])->name('loan-requests.store');
+    Route::post('/loan-requests', [LoanRequestController::class, 'store'])->name('loan-requests.store')->middleware('throttle:10,1');
 
     Route::get('/transactions', [TransactionController::class, 'index'])->name('transactions.index');
     Route::get('/transactions/history', [TransactionController::class, 'history'])->name('transactions.history');
 
     Route::get('/returns/{loanRequest}', [ReturnController::class, 'create'])->name('returns.create');
-    Route::post('/returns/{loanRequest}', [ReturnController::class, 'store'])->name('returns.store');
+    Route::post('/returns/{loanRequest}', [ReturnController::class, 'store'])->name('returns.store')->middleware('throttle:10,1');
 });
 
 /*
@@ -67,7 +67,7 @@ Route::middleware(['auth', 'not-admin'])->group(function () {
 */
 
 
-Route::middleware(['auth', 'admin'])
+Route::middleware(['auth', 'admin','throttle:60,1'])
     ->prefix('admin')
     ->name('admin.')
     ->group(function () {

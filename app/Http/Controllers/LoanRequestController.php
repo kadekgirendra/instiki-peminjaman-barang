@@ -36,7 +36,7 @@ class LoanRequestController extends Controller
             return $item;
         });
 
-        $categories = Item::select('category')->distinct()->pluck('category');
+        $categories = Item::categories();
 
         $prefillDates = session('loan_prefill_dates', ['start_date' => null, 'end_date' => null]);
 
@@ -49,7 +49,7 @@ class LoanRequestController extends Controller
         $validated = $request->validate([
             'start_date' => 'required|date|after_or_equal:today',
             'end_date' => 'required|date|after_or_equal:start_date',
-            'purpose' => 'nullable|string',
+            'purpose' => 'nullable|string|max:500',
             'document' => 'required|file|mimes:pdf,jpg,jpeg,png|max:5120',
         ]);
 

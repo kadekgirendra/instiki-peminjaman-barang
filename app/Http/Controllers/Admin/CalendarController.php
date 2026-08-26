@@ -75,8 +75,7 @@ class CalendarController extends Controller
             'starting_today' => $bookedTransactions->filter(fn($t) => $t->start_date->toDateString() === $today)->count(),
         ];
 
-        $categories = Item::select('category')->distinct()
-            ->pluck('category')->map(fn($c) => trim($c))->unique()->values();
+        $categories = Item::categories();
 
         return view('admin.calendar.index', [
             'events'     => $events,

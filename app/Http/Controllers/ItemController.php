@@ -9,7 +9,9 @@ use Carbon\Carbon;
 
 class ItemController extends Controller
 {
-    public function __construct(protected AvailabilityService $availability) {}
+    public function __construct(protected AvailabilityService $availability)
+    {
+    }
 
     public function index(Request $request)
     {
@@ -23,9 +25,9 @@ class ItemController extends Controller
             $query->where('category', trim($request->category));
         }
 
-        $items = $query->get();
+        $items = $query->paginate(12)->withQueryString();
 
-        $items = $items->map(function (Item $item) use ($request) {
+        $items->through(function (Item $item) use ($request) {
             if ($request->filled(['start_date', 'end_date'])) {
                 $item->available_stock = $this->availability->getAvailableStock(
                     $item,
@@ -39,12 +41,7 @@ class ItemController extends Controller
             return $item;
         });
 
-        $categories = Item::select('category')
-            ->distinct()
-            ->pluck('category')
-            ->map(fn($c) => trim($c))
-            ->unique()
-            ->values();
+        $categories = Item::categories();
 
         return view('items.index', compact('items', 'categories'));
     }

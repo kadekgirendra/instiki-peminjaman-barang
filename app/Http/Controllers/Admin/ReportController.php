@@ -23,8 +23,7 @@ class ReportController extends Controller
         $summary      = $this->buildSummary($start, $end, $category);
         $statusBreakdown = $this->buildStatusBreakdown($start, $end, $category);
 
-        $categories = Item::select('category')->distinct()
-            ->pluck('category')->map(fn($c) => trim($c))->unique()->values();
+        $categories = Item::categories();
 
         return view('admin.reports.index', [
             'itemRows'        => $itemRows,

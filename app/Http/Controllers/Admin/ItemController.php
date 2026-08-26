@@ -41,19 +41,14 @@ class ItemController extends Controller
             return $item;
         });
 
-        $categories = Item::select('category')
-            ->distinct()
-            ->pluck('category')
-            ->map(fn($c) => trim($c))
-            ->unique()
-            ->values();
+        $categories = Item::categories();
 
         return view('admin.items.index', compact('items', 'categories'));
     }
 
     public function create()
     {
-        $categories = Item::select('category')->distinct()->pluck('category')->map(fn($c) => trim($c))->unique()->values();
+        $categories = Item::categories();
 
         return view('admin.items.create', compact('categories'));
     }
@@ -67,13 +62,14 @@ class ItemController extends Controller
         }
 
         Item::create($validated);
+        Item::forgetCategoriesCache();
 
         return redirect()->route('admin.items.index')->with('success', 'Barang berhasil ditambahkan.');
     }
 
     public function edit(Item $item)
     {
-        $categories = Item::select('category')->distinct()->pluck('category')->map(fn($c) => trim($c))->unique()->values();
+        $categories = Item::categories();
 
         return view('admin.items.edit', compact('item', 'categories'));
     }
@@ -90,6 +86,7 @@ class ItemController extends Controller
         }
 
         $item->update($validated);
+        Item::forgetCategoriesCache();
 
         return redirect()->route('admin.items.index')->with('success', 'Barang berhasil diperbarui.');
     }
@@ -110,6 +107,7 @@ class ItemController extends Controller
         }
 
         $item->delete();
+        Item::forgetCategoriesCache();
 
         return redirect()->route('admin.items.index')->with('success', 'Barang berhasil dihapus.');
     }

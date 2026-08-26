@@ -9,7 +9,7 @@ class CartController extends Controller
 {
     public function add(Request $request)
     {
-        \Log::info('CartController@add dipanggil', $request->all());
+
         $validated = $request->validate([
             'item_id' => 'required|exists:items,id',
             'quantity' => 'required|integer|min:1',
