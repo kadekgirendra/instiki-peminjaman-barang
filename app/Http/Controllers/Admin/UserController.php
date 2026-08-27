@@ -37,10 +37,10 @@ class UserController extends Controller
     public function show(User $user)
     {
         $statusMeta = [
-            'pending'   => ['label' => 'Tertunda',  'badge' => 'bg-warning/10 text-warning'],
-            'booked'    => ['label' => 'Disetujui', 'badge' => 'bg-success/10 text-success'],
-            'completed' => ['label' => 'Selesai',   'badge' => 'bg-info/10 text-info'],
-            'rejected'  => ['label' => 'Ditolak',   'badge' => 'bg-danger/10 text-danger'],
+            'pending' => ['label' => 'Tertunda', 'badge' => 'bg-warning/10 text-warning'],
+            'booked' => ['label' => 'Disetujui', 'badge' => 'bg-success/10 text-success'],
+            'completed' => ['label' => 'Selesai', 'badge' => 'bg-info/10 text-info'],
+            'rejected' => ['label' => 'Ditolak', 'badge' => 'bg-danger/10 text-danger'],
         ];
 
         // Dikelompokkan per loan_request supaya satu pengajuan (bisa berisi
@@ -61,10 +61,10 @@ class UserController extends Controller
                 // Rincian barang dalam pengajuan ini beserta jumlah unit yang
                 // dipinjam masing-masing (bukan cuma jumlah baris/jenis barang).
                 $itemsDetail = $group->map(fn($trx) => [
-                    'name'     => $trx->item->name,
+                    'name' => $trx->item->name,
                     'category' => $trx->item->category,
                     'quantity' => $trx->quantity,
-                    'fine'     => (float) $trx->total_fee,
+                    'fine' => (float) $trx->total_fee,
                 ])->values();
 
                 $totalFine = (float) $group->sum('total_fee');
@@ -78,25 +78,25 @@ class UserController extends Controller
                     || ($completedItems->isNotEmpty() && $completedItems->every(fn($trx) => $trx->paid_at !== null));
 
                 return [
-                    'loan_request_id'   => $loanRequest->id,
-                    'items_detail'      => $itemsDetail,
-                    'total_unit'        => $itemsDetail->sum('quantity'),
-                    'tanggal_pinjam'    => $loanRequest->start_date->translatedFormat('j M Y'),
-                    'tanggal_kembali'   => $loanRequest->end_date->translatedFormat('j M Y'),
-                    'status'            => $status,
-                    'status_label'      => $statusMeta[$status]['label'] ?? $status,
-                    'status_badge'      => $statusMeta[$status]['badge'] ?? 'bg-slate-100 text-slate-500',
-                    'total_fine'        => $totalFine,
-                    'is_paid'           => $isPaid,
-                    'jumlah_jenis'      => $group->count(),
+                    'loan_request_id' => $loanRequest->id,
+                    'items_detail' => $itemsDetail,
+                    'total_unit' => $itemsDetail->sum('quantity'),
+                    'tanggal_pinjam' => $loanRequest->start_date->translatedFormat('j M Y'),
+                    'tanggal_kembali' => $loanRequest->end_date->translatedFormat('j M Y'),
+                    'status' => $status,
+                    'status_label' => $statusMeta[$status]['label'] ?? $status,
+                    'status_badge' => $statusMeta[$status]['badge'] ?? 'bg-slate-100 text-slate-500',
+                    'total_fine' => $totalFine,
+                    'is_paid' => $isPaid,
+                    'jumlah_jenis' => $group->count(),
                 ];
             })
             ->values();
 
         // Ringkasan kecil di kartu profil: total pengajuan, sedang dipinjam, selesai.
         $summary = [
-            'total'     => $transactions->count(),
-            'active'    => $transactions->where('status', 'booked')->count(),
+            'total' => $transactions->count(),
+            'active' => $transactions->where('status', 'booked')->count(),
             'completed' => $transactions->where('status', 'completed')->count(),
         ];
 
@@ -112,9 +112,9 @@ class UserController extends Controller
                 $item = $group->first()->item;
 
                 return [
-                    'name'         => $item->name,
-                    'category'     => $item->category,
-                    'total_unit'   => $group->sum('quantity'),
+                    'name' => $item->name,
+                    'category' => $item->category,
+                    'total_unit' => $group->sum('quantity'),
                     'total_pinjam' => $group->count(),
                 ];
             })
@@ -147,14 +147,9 @@ class UserController extends Controller
 
     public function destroy(User $user)
     {
-        // user_id di transactions terkait riwayat peminjaman — cegah hapus
-        // supaya data historis (transaksi, laporan) tidak ikut hilang/rusak.
-        if ($user->transactions()->exists()) {
-            return back()->withErrors([
-                'error' => 'User "' . $user->name . '" tidak bisa dihapus karena masih punya riwayat transaksi.',
-            ]);
-        }
-
+        // Sama seperti Item — User sekarang pakai SoftDeletes, jadi aman dihapus
+        // meski masih punya riwayat transaksi. Datanya tidak hilang, cuma
+        // disembunyikan dari query normal (deleted_at terisi).
         $user->delete();
 
         return redirect()->route('admin.users.index')->with('success', 'User berhasil dihapus.');
