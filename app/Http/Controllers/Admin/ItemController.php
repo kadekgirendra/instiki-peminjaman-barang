@@ -10,7 +10,9 @@ use Illuminate\Support\Facades\Storage;
 
 class ItemController extends Controller
 {
-    public function __construct(protected AvailabilityService $availability) {}
+    public function __construct(protected AvailabilityService $availability)
+    {
+    }
 
     public function index(Request $request)
     {
@@ -93,15 +95,12 @@ class ItemController extends Controller
 
     public function destroy(Item $item)
     {
-        // item_id di transactions pakai cascadeOnDelete — kalau item ini pernah
-        // dipinjam, menghapusnya akan ikut menghapus riwayat transaksi & data revenue.
-        // Cegah dulu supaya data historis tidak hilang tanpa sengaja.
-        if ($item->transactions()->exists()) {
-            return back()->withErrors([
-                'error' => 'Barang "' . $item->name . '" tidak bisa dihapus karena sudah punya riwayat transaksi.',
-            ]);
-        }
-
+        // Dulu ada guard "tolak hapus kalau punya riwayat transaksi" — sekarang
+        // TIDAK PERLU LAGI. Item pakai SoftDeletes, jadi delete() di sini cuma
+        // mengisi kolom deleted_at (UPDATE), bukan DELETE sungguhan — foreign key
+        // cascadeOnDelete di transactions.item_id tidak pernah ter-trigger,
+        // sehingga riwayat transaksi & data revenue tetap aman meski barang ini
+        // "dihapus" dari tampilan katalog.
         if ($item->image) {
             Storage::disk('public')->delete($item->image);
         }
@@ -115,12 +114,12 @@ class ItemController extends Controller
     protected function validated(Request $request): array
     {
         return $request->validate([
-            'name'             => 'required|string|max:255',
-            'category'         => 'required|string|max:100',
-            'description'      => 'nullable|string',
-            'total_stock'      => 'required|integer|min:0',
-            'daily_fine_rate'  => 'required|integer|min:0',
-            'image'            => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+            'name' => 'required|string|max:255',
+            'category' => 'required|string|max:100',
+            'description' => 'nullable|string',
+            'total_stock' => 'required|integer|min:0',
+            'daily_fine_rate' => 'required|integer|min:0',
+            'image' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
         ]);
     }
 }
