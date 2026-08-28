@@ -8,10 +8,14 @@ use App\Models\Transaction;
 use App\Services\AvailabilityService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use App\Mail\LoanRequestStatusMail;
+use Illuminate\Support\Facades\Mail;
 
 class TransactionController extends Controller
 {
-    public function __construct(protected AvailabilityService $availability) {}
+    public function __construct(protected AvailabilityService $availability)
+    {
+    }
 
     public function index(Request $request)
     {
@@ -58,12 +62,12 @@ class TransactionController extends Controller
                     : 0;
 
                 return [
-                    'id'             => $trx->id,
-                    'name'           => $trx->item->name,
-                    'quantity'       => $trx->quantity,
-                    'fine'           => (float) $trx->total_fee,
+                    'id' => $trx->id,
+                    'name' => $trx->item->name,
+                    'quantity' => $trx->quantity,
+                    'fine' => (float) $trx->total_fee,
                     'suggested_fine' => $itemDaysLate * (int) $trx->item->daily_fine_rate,
-                    'returned_at'    => $trx->returned_at?->translatedFormat('j M Y'),
+                    'returned_at' => $trx->returned_at?->translatedFormat('j M Y'),
                 ];
             })->values();
 
@@ -87,10 +91,10 @@ class TransactionController extends Controller
             }
 
             $statusMeta = [
-                'pending'   => ['label' => 'Tertunda',  'badge' => 'bg-warning/10 text-warning'],
-                'booked'    => ['label' => 'Disetujui', 'badge' => 'bg-success/10 text-success'],
-                'completed' => ['label' => 'Selesai',   'badge' => 'bg-info/10 text-info'],
-                'rejected'  => ['label' => 'Ditolak',   'badge' => 'bg-danger/10 text-danger'],
+                'pending' => ['label' => 'Tertunda', 'badge' => 'bg-warning/10 text-warning'],
+                'booked' => ['label' => 'Disetujui', 'badge' => 'bg-success/10 text-success'],
+                'completed' => ['label' => 'Selesai', 'badge' => 'bg-info/10 text-info'],
+                'rejected' => ['label' => 'Ditolak', 'badge' => 'bg-danger/10 text-danger'],
             ][$status] ?? ['label' => $status, 'badge' => 'bg-slate-100 text-slate-500'];
 
             // "Terlambat" bukan status tersendiri di database — barangnya tetap 'booked'
@@ -136,36 +140,36 @@ class TransactionController extends Controller
             $paidAt = $completedItems->pluck('paid_at')->filter()->max();
 
             return [
-                'loan_request_id'      => $loanRequest->id,
-                'user_name'            => $user->name,
-                'user_nim'             => $user->nim_nidn,
-                'items_label'          => $itemsLabel,
-                'items_label_short'    => $group->count() === 1 ? $group->first()->item->name : $itemsLabel,
-                'items_list'           => $itemsList,
-                'tanggal_permintaan'   => $loanRequest->created_at->translatedFormat('j M Y'),
-                'tanggal_pinjam'       => $loanRequest->start_date->translatedFormat('j M Y'),
-                'tanggal_kembali'      => $loanRequest->end_date->translatedFormat('j M Y'),
-                'status'               => $status,
-                'status_label'         => $statusMeta['label'],
-                'status_badge'         => $statusMeta['badge'],
-                'is_overdue'           => $daysLate !== null,
-                'days_late'            => $daysLate,
-                'total_fine'           => $totalFine,
-                'is_paid'              => $isPaid,
-                'paid_at'              => $paidAt?->translatedFormat('j M Y, H:i'),
-                'mark_paid_url'        => route('admin.loan-requests.mark-paid', $loanRequest->id),
-                'returned_at'          => $returnedAt?->translatedFormat('j M Y'),
-                'was_returned_late'    => $wasReturnedLate,
-                'days_late_at_return'  => $daysLateAtReturn,
-                'catatan'              => $loanRequest->purpose,
-                'document_url'         => $documentUrl,
-                'document_name'        => $documentName,
-                'approve_url'          => route('admin.loan-requests.approve', $loanRequest->id),
-                'reject_url'           => route('admin.loan-requests.reject', $loanRequest->id),
-                'complete_url'         => route('admin.loan-requests.complete', $loanRequest->id),
-                'return_photo_url'     => $returnPhotoUrl,
-                'return_note'          => $firstTrx->return_note,
-                'has_return_request'   => $firstTrx->return_requested_at !== null,
+                'loan_request_id' => $loanRequest->id,
+                'user_name' => $user->name,
+                'user_nim' => $user->nim_nidn,
+                'items_label' => $itemsLabel,
+                'items_label_short' => $group->count() === 1 ? $group->first()->item->name : $itemsLabel,
+                'items_list' => $itemsList,
+                'tanggal_permintaan' => $loanRequest->created_at->translatedFormat('j M Y'),
+                'tanggal_pinjam' => $loanRequest->start_date->translatedFormat('j M Y'),
+                'tanggal_kembali' => $loanRequest->end_date->translatedFormat('j M Y'),
+                'status' => $status,
+                'status_label' => $statusMeta['label'],
+                'status_badge' => $statusMeta['badge'],
+                'is_overdue' => $daysLate !== null,
+                'days_late' => $daysLate,
+                'total_fine' => $totalFine,
+                'is_paid' => $isPaid,
+                'paid_at' => $paidAt?->translatedFormat('j M Y, H:i'),
+                'mark_paid_url' => route('admin.loan-requests.mark-paid', $loanRequest->id),
+                'returned_at' => $returnedAt?->translatedFormat('j M Y'),
+                'was_returned_late' => $wasReturnedLate,
+                'days_late_at_return' => $daysLateAtReturn,
+                'catatan' => $loanRequest->purpose,
+                'document_url' => $documentUrl,
+                'document_name' => $documentName,
+                'approve_url' => route('admin.loan-requests.approve', $loanRequest->id),
+                'reject_url' => route('admin.loan-requests.reject', $loanRequest->id),
+                'complete_url' => route('admin.loan-requests.complete', $loanRequest->id),
+                'return_photo_url' => $returnPhotoUrl,
+                'return_note' => $firstTrx->return_note,
+                'has_return_request' => $firstTrx->return_requested_at !== null,
             ];
         })->values();
 
@@ -173,12 +177,12 @@ class TransactionController extends Controller
         // badge angka di tab filter. "late" itu bukan status di DB, cuma subset dari
         // 'booked' yang end_date-nya udah lewat (is_overdue true).
         $tabCounts = [
-            'all'       => $groups->count(),
-            'pending'   => $groups->where('status', 'pending')->count(),
-            'booked'    => $groups->where('status', 'booked')->count(),
-            'late'      => $groups->where('status', 'booked')->where('is_overdue', true)->count(),
+            'all' => $groups->count(),
+            'pending' => $groups->where('status', 'pending')->count(),
+            'booked' => $groups->where('status', 'booked')->count(),
+            'late' => $groups->where('status', 'booked')->where('is_overdue', true)->count(),
             'completed' => $groups->where('status', 'completed')->count(),
-            'rejected'  => $groups->where('status', 'rejected')->count(),
+            'rejected' => $groups->where('status', 'rejected')->count(),
         ];
 
         // Filter opsional dari query string ?status=pending|booked|late|completed|rejected
@@ -197,58 +201,72 @@ class TransactionController extends Controller
     }
 
     public function approve(LoanRequest $loanRequest)
-{
-    try {
-        DB::transaction(function () use ($loanRequest) {
-            // lockForUpdate() di sini mengunci baris transaksi 'pending' milik
-            // pengajuan ini — kalau ada 2 klik approve nyaris bersamaan untuk
-            // pengajuan yang SAMA, yang kedua menunggu sampai yang pertama
-            // selesai, lalu akan menemukan pendingItems sudah kosong.
-            $pendingItems = $loanRequest->transactions()
-                ->where('status', 'pending')
-                ->with('item')
-                ->lockForUpdate()
-                ->get();
+    {
+        try {
+            DB::transaction(function () use ($loanRequest) {
+                // lockForUpdate() di sini mengunci baris transaksi 'pending' milik
+                // pengajuan ini — kalau ada 2 klik approve nyaris bersamaan untuk
+                // pengajuan yang SAMA, yang kedua menunggu sampai yang pertama
+                // selesai, lalu akan menemukan pendingItems sudah kosong.
+                $pendingItems = $loanRequest->transactions()
+                    ->where('status', 'pending')
+                    ->with('item')
+                    ->lockForUpdate()
+                    ->get();
 
-            if ($pendingItems->isEmpty()) {
-                throw new \RuntimeException('Permintaan ini sudah diproses sebelumnya.');
-            }
-
-            // Kunci baris Item terkait, urut ID ascending (lihat
-            // AvailabilityService::lockItems). Ini yang menutup celah race
-            // condition utama: dua pengajuan BEDA yang berebut barang yang
-            // SAMA tidak bisa lagi lolos cek stok secara bersamaan.
-            $itemIds = $pendingItems->pluck('item_id')->unique()->values()->all();
-            $lockedItems = $this->availability->lockItems($itemIds);
-
-            foreach ($pendingItems as $trx) {
-                $item = $lockedItems[$trx->item_id];
-
-                if (! $this->availability->isAvailable(
-                    $item,
-                    $trx->start_date->toDateString(),
-                    $trx->end_date->toDateString(),
-                    $trx->quantity,
-                    lock: true
-                )) {
-                    throw new \RuntimeException(
-                        'Stok "' . $item->name . '" sudah terpakai transaksi lain di rentang tanggal tersebut.'
-                    );
+                if ($pendingItems->isEmpty()) {
+                    throw new \RuntimeException('Permintaan ini sudah diproses sebelumnya.');
                 }
-            }
 
-            $loanRequest->transactions()->where('status', 'pending')->update(['status' => 'booked']);
-        });
-    } catch (\RuntimeException $e) {
-        return back()->withErrors(['error' => $e->getMessage()]);
+                // Kunci baris Item terkait, urut ID ascending (lihat
+                // AvailabilityService::lockItems). Ini yang menutup celah race
+                // condition utama: dua pengajuan BEDA yang berebut barang yang
+                // SAMA tidak bisa lagi lolos cek stok secara bersamaan.
+                $itemIds = $pendingItems->pluck('item_id')->unique()->values()->all();
+                $lockedItems = $this->availability->lockItems($itemIds);
+
+                foreach ($pendingItems as $trx) {
+                    $item = $lockedItems[$trx->item_id];
+
+                    if (
+                        !$this->availability->isAvailable(
+                            $item,
+                            $trx->start_date->toDateString(),
+                            $trx->end_date->toDateString(),
+                            $trx->quantity,
+                            lock: true
+                        )
+                    ) {
+                        throw new \RuntimeException(
+                            'Stok "' . $item->name . '" sudah terpakai transaksi lain di rentang tanggal tersebut.'
+                        );
+                    }
+                }
+
+                $loanRequest->transactions()->where('status', 'pending')->update(['status' => 'booked']);
+            });
+        } catch (\RuntimeException $e) {
+            return back()->withErrors(['error' => $e->getMessage()]);
+        }
+
+        // Sistem ini berbasis username/NIM, bukan email — kolom 'email' memang
+        // tidak ada di tabel users. Guard ini mencegah job queue gagal (Symfony
+        // Mailer menolak alamat null). Kalau ke depannya user->email diisi, baris
+        // ini otomatis mulai mengirim tanpa perlu ubah kode lagi.
+        if ($loanRequest->user->email) {
+            Mail::to($loanRequest->user)->send(new LoanRequestStatusMail($loanRequest, 'booked'));
+        }
+
+        return back()->with('success', 'Permintaan berhasil disetujui.');
     }
-
-    return back()->with('success', 'Permintaan berhasil disetujui.');
-}
 
     public function reject(LoanRequest $loanRequest)
     {
         $loanRequest->transactions()->where('status', 'pending')->update(['status' => 'rejected']);
+
+        if ($loanRequest->user->email) {
+            Mail::to($loanRequest->user)->send(new LoanRequestStatusMail($loanRequest, 'rejected'));
+        }
 
         return back()->with('success', 'Permintaan ditolak.');
     }
@@ -263,15 +281,15 @@ class TransactionController extends Controller
 
         $validated = $request->validate([
             'returned_at' => 'required|date',
-            'fines'       => 'nullable|array',
-            'fines.*'     => 'nullable|numeric|min:0',
+            'fines' => 'nullable|array',
+            'fines.*' => 'nullable|numeric|min:0',
         ]);
 
         foreach ($bookedItems as $trx) {
             $trx->update([
                 'returned_at' => $validated['returned_at'],
-                'total_fee'   => $validated['fines'][$trx->id] ?? 0,
-                'status'      => 'completed',
+                'total_fee' => $validated['fines'][$trx->id] ?? 0,
+                'status' => 'completed',
             ]);
         }
 
