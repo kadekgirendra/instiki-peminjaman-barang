@@ -18,14 +18,31 @@ class Item extends Model
     }
     public static function categories(): \Illuminate\Support\Collection
     {
-        return Cache::remember('item_categories', 3600, function () {
+        try {
+            return Cache::remember('item_categories', 3600, function () {
+                return static::select('category')
+                    ->distinct()
+                    ->pluck('category')
+                    ->map(fn($c) => trim($c))
+                    ->unique()
+                    ->values();
+            });
+        } catch (\Throwable $e) {
+            // Kalau cache korup (race condition antar-request yang nulis cache
+            // key yang sama bersamaan -> __PHP_Incomplete_Class saat dibaca),
+            // buang cache yang rusak dan hitung ulang langsung dari database.
+            // Ini supaya halaman TIDAK ikut down cuma gara-gara 1 baris cache.
+            Cache::forget('item_categories');
+
             return static::select('category')
                 ->distinct()
                 ->pluck('category')
                 ->map(fn($c) => trim($c))
                 ->unique()
                 ->values();
-        });
+        }
+
+
     }
 
     public static function forgetCategoriesCache(): void
