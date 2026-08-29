@@ -272,48 +272,68 @@ class TransactionController extends Controller
     }
 
     public function complete(Request $request, LoanRequest $loanRequest)
-    {
-        $bookedItems = $loanRequest->transactions()->where('status', 'booked')->get();
+{
+    $validated = $request->validate([
+        'returned_at' => 'required|date',
+        'fines' => 'nullable|array',
+        'fines.*' => 'nullable|numeric|min:0',
+    ]);
 
-        if ($bookedItems->isEmpty()) {
-            return back()->withErrors(['error' => 'Tidak ada barang yang perlu diselesaikan pada permintaan ini.']);
-        }
+    try {
+        DB::transaction(function () use ($loanRequest, $validated) {
+            // lockForUpdate() mencegah 2 klik "Selesaikan" yang nyaris
+            // bersamaan sama-sama lolos baca status 'booked' dan menimpa
+            // data satu sama lain dengan nilai denda yang mungkin beda.
+            $bookedItems = $loanRequest->transactions()
+                ->where('status', 'booked')
+                ->lockForUpdate()
+                ->get();
 
-        $validated = $request->validate([
-            'returned_at' => 'required|date',
-            'fines' => 'nullable|array',
-            'fines.*' => 'nullable|numeric|min:0',
-        ]);
+            if ($bookedItems->isEmpty()) {
+                throw new \RuntimeException('Tidak ada barang yang perlu diselesaikan pada permintaan ini.');
+            }
 
-        foreach ($bookedItems as $trx) {
-            $trx->update([
-                'returned_at' => $validated['returned_at'],
-                'total_fee' => $validated['fines'][$trx->id] ?? 0,
-                'status' => 'completed',
-            ]);
-        }
-
-        return back()->with('success', 'Permintaan ditandai selesai.');
+            foreach ($bookedItems as $trx) {
+                $trx->update([
+                    'returned_at' => $validated['returned_at'],
+                    'total_fee' => $validated['fines'][$trx->id] ?? 0,
+                    'status' => 'completed',
+                ]);
+            }
+        });
+    } catch (\RuntimeException $e) {
+        return back()->withErrors(['error' => $e->getMessage()]);
     }
 
+    return back()->with('success', 'Permintaan ditandai selesai.');
+}
     public function markPaid(LoanRequest $loanRequest)
-    {
-        $completedItems = $loanRequest->transactions()->where('status', 'completed')->get();
+{
+    try {
+        DB::transaction(function () use ($loanRequest) {
+            $completedItems = $loanRequest->transactions()
+                ->where('status', 'completed')
+                ->lockForUpdate()
+                ->get();
 
-        if ($completedItems->isEmpty()) {
-            return back()->withErrors([
-                'error' => 'Permintaan ini belum ditandai selesai, belum ada denda yang bisa dilunasi.',
-            ]);
-        }
+            if ($completedItems->isEmpty()) {
+                throw new \RuntimeException('Permintaan ini belum ditandai selesai, belum ada denda yang bisa dilunasi.');
+            }
 
-        if ((float) $completedItems->sum('total_fee') <= 0) {
-            return back()->withErrors([
-                'error' => 'Permintaan ini tidak memiliki denda yang perlu dibayar.',
-            ]);
-        }
+            if ((float) $completedItems->sum('total_fee') <= 0) {
+                throw new \RuntimeException('Permintaan ini tidak memiliki denda yang perlu dibayar.');
+            }
 
-        $loanRequest->transactions()->where('status', 'completed')->update(['paid_at' => now()]);
+            if ($completedItems->contains(fn ($trx) => $trx->paid_at !== null)) {
+                throw new \RuntimeException('Denda pada permintaan ini sudah pernah ditandai lunas sebelumnya.');
+            }
 
-        return back()->with('success', 'Denda ditandai lunas.');
+            $loanRequest->transactions()->where('status', 'completed')->update(['paid_at' => now()]);
+        });
+    } catch (\RuntimeException $e) {
+        return back()->withErrors(['error' => $e->getMessage()]);
     }
+
+    return back()->with('success', 'Denda ditandai lunas.');
+}
 }
