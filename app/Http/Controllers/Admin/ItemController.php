@@ -36,9 +36,12 @@ class ItemController extends Controller
         // bukan yang sedang tidak dipinjam.
         $today = now()->toDateString();
 
-        $items->getCollection()->transform(function (Item $item) use ($today) {
-            $item->available_stock = $this->availability->getAvailableStock($item, $today, $today);
+        $stockMap = $this->availability->getAvailableStockBulk($items->getCollection(), $today, $today);
+
+        $items->getCollection()->transform(function (Item $item) use ($stockMap) {
+            $item->available_stock = $stockMap[$item->id];
             $item->borrowed_now = $item->total_stock - $item->available_stock;
+
 
             return $item;
         });
