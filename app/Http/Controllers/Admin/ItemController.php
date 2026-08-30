@@ -7,6 +7,10 @@ use App\Models\Item;
 use App\Services\AvailabilityService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Str;
+use Intervention\Image\Laravel\Facades\Image;
+use Intervention\Image\Format;
 
 class ItemController extends Controller
 {
@@ -63,7 +67,7 @@ class ItemController extends Controller
         $validated = $this->validated($request);
 
         if ($request->hasFile('image')) {
-            $validated['image'] = $request->file('image')->store('items', 'public');
+            $validated['image'] = $this->storeResizedImage($request->file('image'));
         }
 
         Item::create($validated);
@@ -87,7 +91,7 @@ class ItemController extends Controller
             if ($item->image) {
                 Storage::disk('public')->delete($item->image);
             }
-            $validated['image'] = $request->file('image')->store('items', 'public');
+            $$validated['image'] = $this->storeResizedImage($request->file('image'));
         }
 
         $item->update($validated);
@@ -124,5 +128,26 @@ class ItemController extends Controller
             'daily_fine_rate' => 'required|integer|min:0',
             'image' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
         ]);
+    }
+    /**
+     * Resize gambar sebelum disimpan — foto barang dari kamera HP bisa
+     * beresolusi 3000x4000px+, padahal cuma ditampilkan di kotak kecil
+     * (h-44 di katalog). Tanpa resize, browser tetap download file penuh
+     * meski ditampilkan kecil — buang-buang bandwidth tanpa nambah kualitas
+     * tampilan. Semua format input (jpg/png) diseragamkan jadi .jpg di sini
+     * supaya ukuran file makin kecil (PNG biasanya jauh lebih besar dari JPG
+     * untuk foto biasa, dan barang di sini tidak butuh transparansi).
+     */
+    private function storeResizedImage(UploadedFile $file): string
+    {
+        $image = Image::decode($file)->scaleDown(width: 800);
+
+        $filename = 'items/' . Str::random(40) . '.jpg';
+
+        $encoded = $image->encodeUsingFormat(Format::JPEG, quality: 80);
+
+        Storage::disk('public')->put($filename, (string) $encoded);
+
+        return $filename;
     }
 }
