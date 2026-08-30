@@ -114,4 +114,38 @@ class AvailabilityService
 
         return $fullyBooked;
     }
+    /**
+     * Hitung stok tersedia untuk BANYAK barang sekaligus dalam 1 query,
+     * bukan 1 query per barang. Dipakai khusus di halaman list/katalog
+     * (banyak barang ditampilkan sekaligus) untuk menghindari N+1 query —
+     * beda dari getAvailableStock() yang tetap dipakai untuk cek 1 barang
+     * spesifik (misal saat submit pengajuan / approve).
+     *
+     * @param iterable<Item> $items
+     * @return array<int, int> [item_id => available_stock]
+     */
+    public function getAvailableStockBulk(iterable $items, string $startDate, string $endDate): array
+    {
+        $itemIds = collect($items)->pluck('id')->all();
+
+        if (empty($itemIds)) {
+            return [];
+        }
+
+        $bookedByItem = Transaction::whereIn('item_id', $itemIds)
+            ->where('status', 'booked')
+            ->overlapping($startDate, $endDate)
+            ->selectRaw('item_id, SUM(quantity) as total_booked')
+            ->groupBy('item_id')
+            ->pluck('total_booked', 'item_id');
+
+        $result = [];
+
+        foreach ($items as $item) {
+            $booked = (int) ($bookedByItem[$item->id] ?? 0);
+            $result[$item->id] = max($item->total_stock - $booked, 0);
+        }
+
+        return $result;
+    }
 }
