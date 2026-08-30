@@ -124,7 +124,7 @@
                 <div
                     class="h-44 bg-slate-100 rounded-lg mb-4 flex items-center justify-center overflow-hidden {{ !$isAvailable ? 'opacity-50' : '' }}">
                     @if ($item->image)
-                        <img src="{{ asset('storage/' . $item->image) }}" class="h-full w-full object-contain">
+                        <img src="{{ asset('storage/' . $item->image) }}" loading="lazy" class="h-full w-full object-contain">
                     @else
                         <span class="text-slate-400 text-sm">Tidak ada foto</span>
                     @endif
