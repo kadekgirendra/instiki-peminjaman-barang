@@ -27,19 +27,24 @@ class ItemController extends Controller
 
         $items = $query->paginate(12)->withQueryString();
 
-        $items->through(function (Item $item) use ($request) {
-            if ($request->filled(['start_date', 'end_date'])) {
-                $item->available_stock = $this->availability->getAvailableStock(
-                    $item,
-                    $request->start_date,
-                    $request->end_date
-                );
-            } else {
-                $item->available_stock = $item->total_stock;
-            }
+        if ($request->filled(['start_date', 'end_date'])) {
+            // 1 query buat semua barang di halaman ini, bukan 1 query per barang.
+            $stockMap = $this->availability->getAvailableStockBulk(
+                $items->getCollection(),
+                $request->start_date,
+                $request->end_date
+            );
 
-            return $item;
-        });
+            $items->through(function (Item $item) use ($stockMap) {
+                $item->available_stock = $stockMap[$item->id];
+                return $item;
+            });
+        } else {
+            $items->through(function (Item $item) {
+                $item->available_stock = $item->total_stock;
+                return $item;
+            });
+        }
 
         $categories = Item::categories();
 
