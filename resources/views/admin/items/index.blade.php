@@ -76,7 +76,7 @@
                         <td class="py-4 px-6 font-medium text-secondary">
                             <div class="flex items-center gap-3">
                                 @if ($item->image)
-                                    <img src="{{ asset('storage/' . $item->image) }}" alt="{{ $item->name }}"
+                                    <img src="{{ asset('storage/' . $item->image) }}" alt="{{ $item->name }}" loading="lazy"
                                         class="w-10 h-10 rounded-lg object-cover shrink-0 border border-slate-100">
                                 @else
                                     <div
