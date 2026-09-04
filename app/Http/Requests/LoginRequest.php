@@ -3,10 +3,10 @@
 namespace App\Http\Requests;
 
 use Illuminate\Contracts\Validation\ValidationRule;
-use Illuminate\Validation\ValidationException;
+use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\RateLimiter;
-use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\ValidationException;
 
 class LoginRequest extends FormRequest
 {
@@ -30,6 +30,7 @@ class LoginRequest extends FormRequest
             'password' => ['required', 'string'],
         ];
     }
+
     public function authenticate(): void
     {
         $this->ensureIsNotRateLimited();
@@ -44,11 +45,12 @@ class LoginRequest extends FormRequest
 
         RateLimiter::clear($this->throttleKey());
     }
+
     protected function ensureIsNotRateLimited(): void
     {
         if (RateLimiter::tooManyAttempts($this->throttleKey(), 5)) {
             throw ValidationException::withMessages([
-                'username' => 'Terlalu banyak percobaan login. Coba lagi dalam ' . RateLimiter::availableIn($this->throttleKey()) . ' detik.',
+                'username' => 'Terlalu banyak percobaan login. Coba lagi dalam '.RateLimiter::availableIn($this->throttleKey()).' detik.',
             ]);
         }
         RateLimiter::hit($this->throttleKey(), 60);
@@ -56,6 +58,6 @@ class LoginRequest extends FormRequest
 
     protected function throttleKey(): string
     {
-        return strtolower($this->input('username')) . '|' . $this->ip();
+        return strtolower($this->input('username')).'|'.$this->ip();
     }
 }

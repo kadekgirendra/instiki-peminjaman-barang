@@ -41,6 +41,7 @@ class AvailabilityRaceConditionTest extends TestCase
 
         $secondSucceeded = DB::transaction(function () use ($availability, $item) {
             $locked = $availability->lockItems([$item->id]);
+
             return $availability->isAvailable($locked[$item->id], '2026-09-02', '2026-09-04', 1, lock: true);
         });
 

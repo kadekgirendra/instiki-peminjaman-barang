@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\Item;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -34,7 +35,7 @@ class ItemImageResizeTest extends TestCase
 
         $response->assertRedirect(route('admin.items.index'));
 
-        $item = \App\Models\Item::where('name', 'Proyektor Epson')->firstOrFail();
+        $item = Item::where('name', 'Proyektor Epson')->firstOrFail();
 
         // File harus benar-benar tersimpan di disk...
         $this->assertNotNull($item->image);

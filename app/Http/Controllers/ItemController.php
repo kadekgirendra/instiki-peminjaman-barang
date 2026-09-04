@@ -5,20 +5,17 @@ namespace App\Http\Controllers;
 use App\Models\Item;
 use App\Services\AvailabilityService;
 use Illuminate\Http\Request;
-use Carbon\Carbon;
 
 class ItemController extends Controller
 {
-    public function __construct(protected AvailabilityService $availability)
-    {
-    }
+    public function __construct(protected AvailabilityService $availability) {}
 
     public function index(Request $request)
     {
         $query = Item::query();
 
         if ($request->filled('search')) {
-            $query->where('name', 'like', '%' . $request->search . '%');
+            $query->where('name', 'like', '%'.$request->search.'%');
         }
 
         if ($request->filled('category') && $request->category !== 'all') {
@@ -37,11 +34,13 @@ class ItemController extends Controller
 
             $items->through(function (Item $item) use ($stockMap) {
                 $item->available_stock = $stockMap[$item->id];
+
                 return $item;
             });
         } else {
             $items->through(function (Item $item) {
                 $item->available_stock = $item->total_stock;
+
                 return $item;
             });
         }

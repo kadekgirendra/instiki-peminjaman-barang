@@ -6,24 +6,22 @@ use App\Http\Controllers\Controller;
 use App\Models\Item;
 use App\Services\AvailabilityService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
-use Intervention\Image\Laravel\Facades\Image;
 use Intervention\Image\Format;
+use Intervention\Image\Laravel\Facades\Image;
 
 class ItemController extends Controller
 {
-    public function __construct(protected AvailabilityService $availability)
-    {
-    }
+    public function __construct(protected AvailabilityService $availability) {}
 
     public function index(Request $request)
     {
         $query = Item::query();
 
         if ($request->filled('search')) {
-            $query->where('name', 'like', '%' . $request->search . '%');
+            $query->where('name', 'like', '%'.$request->search.'%');
         }
 
         if ($request->filled('category') && $request->category !== 'all') {
@@ -45,7 +43,6 @@ class ItemController extends Controller
         $items->getCollection()->transform(function (Item $item) use ($stockMap) {
             $item->available_stock = $stockMap[$item->id];
             $item->borrowed_now = $item->total_stock - $item->available_stock;
-
 
             return $item;
         });
@@ -129,6 +126,7 @@ class ItemController extends Controller
             'image' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
         ]);
     }
+
     /**
      * Resize gambar sebelum disimpan — foto barang dari kamera HP bisa
      * beresolusi 3000x4000px+, padahal cuma ditampilkan di kotak kecil
@@ -142,7 +140,7 @@ class ItemController extends Controller
     {
         $image = Image::decode($file)->scaleDown(width: 800);
 
-        $filename = 'items/' . Str::random(40) . '.jpg';
+        $filename = 'items/'.Str::random(40).'.jpg';
 
         $encoded = $image->encodeUsingFormat(Format::JPEG, quality: 80);
 

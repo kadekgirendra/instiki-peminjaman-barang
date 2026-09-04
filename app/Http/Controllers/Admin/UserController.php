@@ -50,7 +50,7 @@ class UserController extends Controller
             ->where('user_id', $user->id)
             ->get()
             ->groupBy('loan_request_id')
-            ->sortByDesc(fn($group) => $group->first()->loanRequest->created_at)
+            ->sortByDesc(fn ($group) => $group->first()->loanRequest->created_at)
             ->map(function ($group) use ($statusMeta) {
                 $loanRequest = $group->first()->loanRequest;
                 $statuses = $group->pluck('status')->unique();
@@ -60,7 +60,7 @@ class UserController extends Controller
 
                 // Rincian barang dalam pengajuan ini beserta jumlah unit yang
                 // dipinjam masing-masing (bukan cuma jumlah baris/jenis barang).
-                $itemsDetail = $group->map(fn($trx) => [
+                $itemsDetail = $group->map(fn ($trx) => [
                     'name' => $trx->item->name,
                     'category' => $trx->item->category,
                     'quantity' => $trx->quantity,
@@ -75,7 +75,7 @@ class UserController extends Controller
                 // sudah ditandai admin lewat paid_at.
                 $completedItems = $group->where('status', 'completed');
                 $isPaid = $totalFine <= 0
-                    || ($completedItems->isNotEmpty() && $completedItems->every(fn($trx) => $trx->paid_at !== null));
+                    || ($completedItems->isNotEmpty() && $completedItems->every(fn ($trx) => $trx->paid_at !== null));
 
                 return [
                     'loan_request_id' => $loanRequest->id,

@@ -3,19 +3,17 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Mail\LoanRequestStatusMail;
 use App\Models\LoanRequest;
 use App\Models\Transaction;
 use App\Services\AvailabilityService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use App\Mail\LoanRequestStatusMail;
 use Illuminate\Support\Facades\Mail;
 
 class TransactionController extends Controller
 {
-    public function __construct(protected AvailabilityService $availability)
-    {
-    }
+    public function __construct(protected AvailabilityService $availability) {}
 
     public function index(Request $request)
     {
@@ -24,14 +22,14 @@ class TransactionController extends Controller
         if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
-                $q->whereHas('user', fn($u) => $u->where('name', 'like', "%{$search}%")
+                $q->whereHas('user', fn ($u) => $u->where('name', 'like', "%{$search}%")
                     ->orWhere('nim_nidn', 'like', "%{$search}%"))
-                    ->orWhereHas('item', fn($i) => $i->where('name', 'like', "%{$search}%"));
+                    ->orWhereHas('item', fn ($i) => $i->where('name', 'like', "%{$search}%"));
             });
         }
 
         $transactions = $query->get()->groupBy('loan_request_id')
-            ->sortByDesc(fn($group) => $group->first()->loanRequest->created_at);
+            ->sortByDesc(fn ($group) => $group->first()->loanRequest->created_at);
 
         $groups = $transactions->map(function ($group) {
             $loanRequest = $group->first()->loanRequest;
@@ -49,7 +47,7 @@ class TransactionController extends Controller
             }
 
             $itemsLabel = $group->count() === 1
-                ? $group->first()->item->name . ' - ' . $group->first()->item->category
+                ? $group->first()->item->name.' - '.$group->first()->item->category
                 : $group->pluck('item.name')->implode(', ');
 
             $itemsList = $group->map(function ($trx) {
@@ -81,13 +79,13 @@ class TransactionController extends Controller
             $returnedAt = $group->pluck('returned_at')->filter()->max();
 
             $firstTrx = $group->first();
-            $returnPhotoUrl = $firstTrx->return_photo ? asset('storage/' . $firstTrx->return_photo) : null;
+            $returnPhotoUrl = $firstTrx->return_photo ? asset('storage/'.$firstTrx->return_photo) : null;
 
             $documentUrl = null;
             $documentName = null;
             if ($loanRequest->document_path) {
-                $documentUrl = asset('storage/' . $loanRequest->document_path);
-                $documentName = 'Dokumen Pendukung.' . pathinfo($loanRequest->document_path, PATHINFO_EXTENSION);
+                $documentUrl = asset('storage/'.$loanRequest->document_path);
+                $documentName = 'Dokumen Pendukung.'.pathinfo($loanRequest->document_path, PATHINFO_EXTENSION);
             }
 
             $statusMeta = [
@@ -114,7 +112,7 @@ class TransactionController extends Controller
             if ($status === 'booked' && now()->toDateString() > $latestEndDate->toDateString()) {
                 $daysLate = (int) $latestEndDate->diffInDays(now());
                 $statusMeta = [
-                    'label' => 'Terlambat ' . $daysLate . ' hari',
+                    'label' => 'Terlambat '.$daysLate.' hari',
                     'badge' => 'bg-danger/10 text-danger',
                 ];
             }
@@ -136,7 +134,7 @@ class TransactionController extends Controller
             // paid_at (lihat Admin\TransactionController::markPaid).
             $completedItems = $group->where('status', 'completed');
             $isPaid = $totalFine <= 0
-                || ($completedItems->isNotEmpty() && $completedItems->every(fn($trx) => $trx->paid_at !== null));
+                || ($completedItems->isNotEmpty() && $completedItems->every(fn ($trx) => $trx->paid_at !== null));
             $paidAt = $completedItems->pluck('paid_at')->filter()->max();
 
             return [
@@ -229,7 +227,7 @@ class TransactionController extends Controller
                     $item = $lockedItems[$trx->item_id];
 
                     if (
-                        !$this->availability->isAvailable(
+                        ! $this->availability->isAvailable(
                             $item,
                             $trx->start_date->toDateString(),
                             $trx->end_date->toDateString(),
@@ -238,7 +236,7 @@ class TransactionController extends Controller
                         )
                     ) {
                         throw new \RuntimeException(
-                            'Stok "' . $item->name . '" sudah terpakai transaksi lain di rentang tanggal tersebut.'
+                            'Stok "'.$item->name.'" sudah terpakai transaksi lain di rentang tanggal tersebut.'
                         );
                     }
                 }
@@ -272,68 +270,69 @@ class TransactionController extends Controller
     }
 
     public function complete(Request $request, LoanRequest $loanRequest)
-{
-    $validated = $request->validate([
-        'returned_at' => 'required|date',
-        'fines' => 'nullable|array',
-        'fines.*' => 'nullable|numeric|min:0',
-    ]);
+    {
+        $validated = $request->validate([
+            'returned_at' => 'required|date',
+            'fines' => 'nullable|array',
+            'fines.*' => 'nullable|numeric|min:0',
+        ]);
 
-    try {
-        DB::transaction(function () use ($loanRequest, $validated) {
-            // lockForUpdate() mencegah 2 klik "Selesaikan" yang nyaris
-            // bersamaan sama-sama lolos baca status 'booked' dan menimpa
-            // data satu sama lain dengan nilai denda yang mungkin beda.
-            $bookedItems = $loanRequest->transactions()
-                ->where('status', 'booked')
-                ->lockForUpdate()
-                ->get();
+        try {
+            DB::transaction(function () use ($loanRequest, $validated) {
+                // lockForUpdate() mencegah 2 klik "Selesaikan" yang nyaris
+                // bersamaan sama-sama lolos baca status 'booked' dan menimpa
+                // data satu sama lain dengan nilai denda yang mungkin beda.
+                $bookedItems = $loanRequest->transactions()
+                    ->where('status', 'booked')
+                    ->lockForUpdate()
+                    ->get();
 
-            if ($bookedItems->isEmpty()) {
-                throw new \RuntimeException('Tidak ada barang yang perlu diselesaikan pada permintaan ini.');
-            }
+                if ($bookedItems->isEmpty()) {
+                    throw new \RuntimeException('Tidak ada barang yang perlu diselesaikan pada permintaan ini.');
+                }
 
-            foreach ($bookedItems as $trx) {
-                $trx->update([
-                    'returned_at' => $validated['returned_at'],
-                    'total_fee' => $validated['fines'][$trx->id] ?? 0,
-                    'status' => 'completed',
-                ]);
-            }
-        });
-    } catch (\RuntimeException $e) {
-        return back()->withErrors(['error' => $e->getMessage()]);
+                foreach ($bookedItems as $trx) {
+                    $trx->update([
+                        'returned_at' => $validated['returned_at'],
+                        'total_fee' => $validated['fines'][$trx->id] ?? 0,
+                        'status' => 'completed',
+                    ]);
+                }
+            });
+        } catch (\RuntimeException $e) {
+            return back()->withErrors(['error' => $e->getMessage()]);
+        }
+
+        return back()->with('success', 'Permintaan ditandai selesai.');
     }
 
-    return back()->with('success', 'Permintaan ditandai selesai.');
-}
     public function markPaid(LoanRequest $loanRequest)
-{
-    try {
-        DB::transaction(function () use ($loanRequest) {
-            $completedItems = $loanRequest->transactions()
-                ->where('status', 'completed')
-                ->lockForUpdate()
-                ->get();
+    {
+        try {
+            DB::transaction(function () use ($loanRequest) {
+                $completedItems = $loanRequest->transactions()
+                    ->where('status', 'completed')
+                    ->lockForUpdate()
+                    ->get();
 
-            if ($completedItems->isEmpty()) {
-                throw new \RuntimeException('Permintaan ini belum ditandai selesai, belum ada denda yang bisa dilunasi.');
-            }
+                if ($completedItems->isEmpty()) {
+                    throw new \RuntimeException('Permintaan ini belum ditandai selesai, belum ada denda yang bisa dilunasi.');
+                }
 
-            if ((float) $completedItems->sum('total_fee') <= 0) {
-                throw new \RuntimeException('Permintaan ini tidak memiliki denda yang perlu dibayar.');
-            }
+                if ((float) $completedItems->sum('total_fee') <= 0) {
+                    throw new \RuntimeException('Permintaan ini tidak memiliki denda yang perlu dibayar.');
+                }
 
-            if ($completedItems->contains(fn ($trx) => $trx->paid_at !== null)) {
-                throw new \RuntimeException('Denda pada permintaan ini sudah pernah ditandai lunas sebelumnya.');
-            }
+                if ($completedItems->contains(fn ($trx) => $trx->paid_at !== null)) {
+                    throw new \RuntimeException('Denda pada permintaan ini sudah pernah ditandai lunas sebelumnya.');
+                }
 
-            $loanRequest->transactions()->where('status', 'completed')->update(['paid_at' => now()]);
-        });
-    } catch (\RuntimeException $e) {
-        return back()->withErrors(['error' => $e->getMessage()]);
+                $loanRequest->transactions()->where('status', 'completed')->update(['paid_at' => now()]);
+            });
+        } catch (\RuntimeException $e) {
+            return back()->withErrors(['error' => $e->getMessage()]);
+        }
+
+        return back()->with('success', 'Denda ditandai lunas.');
     }
-
-    return back()->with('success', 'Denda ditandai lunas.');
-}
 }

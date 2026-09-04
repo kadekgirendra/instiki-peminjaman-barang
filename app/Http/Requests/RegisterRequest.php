@@ -23,12 +23,13 @@ class RegisterRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'username'  => ['required', 'string', 'max:50', 'unique:users,username', 'alpha_dash'],
-            'name'      => ['required', 'string', 'max:255'],
-            'nim_nidn'  => ['required', 'string', 'max:20', 'unique:users,nim_nidn'],
-            'password'  => ['required', 'string', 'min:8', 'confirmed'],
+            'username' => ['required', 'string', 'max:50', 'unique:users,username', 'alpha_dash'],
+            'name' => ['required', 'string', 'max:255'],
+            'nim_nidn' => ['required', 'string', 'max:20', 'unique:users,nim_nidn'],
+            'password' => ['required', 'string', 'min:8', 'confirmed'],
         ];
     }
+
     public function messages(): array
     {
         return [

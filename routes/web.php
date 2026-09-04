@@ -1,14 +1,14 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Admin;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\CartController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ItemController;
-use App\Http\Controllers\CartController;
 use App\Http\Controllers\LoanRequestController;
-use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\ReturnController;
-use App\Http\Controllers\Admin;
+use App\Http\Controllers\TransactionController;
+use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     return redirect()->route('login');
@@ -66,8 +66,7 @@ Route::middleware(['auth', 'not-admin'])->group(function () {
 |--------------------------------------------------------------------------
 */
 
-
-Route::middleware(['auth', 'admin','throttle:60,1'])
+Route::middleware(['auth', 'admin', 'throttle:60,1'])
     ->prefix('admin')
     ->name('admin.')
     ->group(function () {

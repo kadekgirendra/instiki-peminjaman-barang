@@ -3,8 +3,8 @@
 namespace App\View\Components;
 
 use App\Models\Transaction;
-use Illuminate\View\Component;
 use Illuminate\Contracts\View\View;
+use Illuminate\View\Component;
 
 class AppLayout extends Component
 {

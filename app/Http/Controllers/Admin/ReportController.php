@@ -46,7 +46,7 @@ class ReportController extends Controller
         $itemRows = $this->buildItemRows($start, $end, $category);
         $borrowerRows = $this->buildBorrowerRows($start, $end, $category);
 
-        $filename = 'laporan-peminjaman-' . now()->format('Y-m-d') . '.csv';
+        $filename = 'laporan-peminjaman-'.now()->format('Y-m-d').'.csv';
 
         return response()->streamDownload(function () use ($itemRows, $borrowerRows) {
             $handle = fopen('php://output', 'w');
@@ -93,7 +93,7 @@ class ReportController extends Controller
             'printedAt' => now()->translatedFormat('j F Y, H:i'),
         ])->setPaper('a4', 'portrait');
 
-        $filename = 'laporan-peminjaman-' . now()->format('Y-m-d') . '.pdf';
+        $filename = 'laporan-peminjaman-'.now()->format('Y-m-d').'.pdf';
 
         return $pdf->download($filename);
     }
@@ -132,7 +132,7 @@ class ReportController extends Controller
         }
 
         if ($category !== 'all') {
-            $query->whereHas('item', fn($q) => $q->where('category', $category));
+            $query->whereHas('item', fn ($q) => $q->where('category', $category));
         }
 
         return $query;
@@ -141,30 +141,30 @@ class ReportController extends Controller
     private function buildItemRows(?Carbon $start, ?Carbon $end, string $category)
     {
         return $this->reportCacheRemember(
-        $this->reportCacheKey('item-rows', $start, $end, $category),
-        function () use ($start, $end, $category) {
-        return $this->baseQuery($start, $end, $category)->get()
-            ->groupBy('item_id')
-            ->map(function ($group) {
-                $item = $group->first()->item;
-                $avgDays = $group->avg(fn($trx) => max(1, $trx->start_date->diffInDays($trx->end_date)));
+            $this->reportCacheKey('item-rows', $start, $end, $category),
+            function () use ($start, $end, $category) {
+                return $this->baseQuery($start, $end, $category)->get()
+                    ->groupBy('item_id')
+                    ->map(function ($group) {
+                        $item = $group->first()->item;
+                        $avgDays = $group->avg(fn ($trx) => max(1, $trx->start_date->diffInDays($trx->end_date)));
 
-                return [
-                    'name' => $item->name,
-                    'category' => $item->category,
-                    'total_unit' => $group->sum('quantity'),
-                    'frequency' => $group->count(),
-                    'avg_duration' => (int) round($avgDays),
-                    // Cuma denda yang sudah ditandai lunas (paid_at terisi) yang
-                    // dihitung sebagai "pendapatan" — konsisten dengan kartu
-                    // Total Pendapatan di Dashboard.
-                    'total_revenue' => (float) $group->filter(fn($trx) => $trx->paid_at !== null)->sum('total_fee'),
-                ];
-            })
-            ->sortByDesc('total_unit')
-            ->values();
+                        return [
+                            'name' => $item->name,
+                            'category' => $item->category,
+                            'total_unit' => $group->sum('quantity'),
+                            'frequency' => $group->count(),
+                            'avg_duration' => (int) round($avgDays),
+                            // Cuma denda yang sudah ditandai lunas (paid_at terisi) yang
+                            // dihitung sebagai "pendapatan" — konsisten dengan kartu
+                            // Total Pendapatan di Dashboard.
+                            'total_revenue' => (float) $group->filter(fn ($trx) => $trx->paid_at !== null)->sum('total_fee'),
+                        ];
+                    })
+                    ->sortByDesc('total_unit')
+                    ->values();
 
-        });
+            });
 
     }
 
@@ -173,54 +173,54 @@ class ReportController extends Controller
     private function buildBorrowerRows(?Carbon $start, ?Carbon $end, string $category)
     {
         return $this->reportCacheRemember(
-        $this->reportCacheKey('borrower-rows', $start, $end, $category),
-        function () use ($start, $end, $category) {
-        return $this->baseQuery($start, $end, $category)->get()
-            ->groupBy('user_id')
-            ->map(function ($group) {
-                $user = $group->first()->user;
+            $this->reportCacheKey('borrower-rows', $start, $end, $category),
+            function () use ($start, $end, $category) {
+                return $this->baseQuery($start, $end, $category)->get()
+                    ->groupBy('user_id')
+                    ->map(function ($group) {
+                        $user = $group->first()->user;
 
-                return [
-                    'name' => $user->name,
-                    'nim_nidn' => $user->nim_nidn,
-                    'total_requests' => $group->pluck('loan_request_id')->unique()->count(),
-                    'total_unit' => $group->sum('quantity'),
-                    // Sama seperti laporan per barang: cuma yang sudah lunas
-                    // yang dihitung, supaya totalnya nyambung ke Total Pendapatan.
-                    'total_fine' => (float) $group->filter(fn($trx) => $trx->paid_at !== null)->sum('total_fee'),
-                ];
-            })
-            ->sortByDesc('total_unit')
-            ->values();
-        });
+                        return [
+                            'name' => $user->name,
+                            'nim_nidn' => $user->nim_nidn,
+                            'total_requests' => $group->pluck('loan_request_id')->unique()->count(),
+                            'total_unit' => $group->sum('quantity'),
+                            // Sama seperti laporan per barang: cuma yang sudah lunas
+                            // yang dihitung, supaya totalnya nyambung ke Total Pendapatan.
+                            'total_fine' => (float) $group->filter(fn ($trx) => $trx->paid_at !== null)->sum('total_fee'),
+                        ];
+                    })
+                    ->sortByDesc('total_unit')
+                    ->values();
+            });
     }
 
     // Kartu ringkasan di atas halaman.
     private function buildSummary(?Carbon $start, ?Carbon $end, string $category)
     {
         return $this->reportCacheRemember(
-        $this->reportCacheKey('summary', $start, $end, $category),
-        function () use ($start, $end, $category) {
-        $rows = $this->baseQuery($start, $end, $category)->get();
+            $this->reportCacheKey('summary', $start, $end, $category),
+            function () use ($start, $end, $category) {
+                $rows = $this->baseQuery($start, $end, $category)->get();
 
-        $avgDuration = $rows->avg(fn($trx) => max(1, $trx->start_date->diffInDays($trx->end_date)));
+                $avgDuration = $rows->avg(fn ($trx) => max(1, $trx->start_date->diffInDays($trx->end_date)));
 
-        // Piutang: denda yang sudah tercatat (total_fee > 0) tapi belum
-        // ditandai lunas (paid_at masih null) — supaya "Total Pendapatan"
-        // (uang yang sudah masuk) dan "Belum Dibayar" (uang yang masih
-        // harus ditagih) sama-sama kelihatan dan saling melengkapi.
-        $totalUnpaid = (float) $rows->filter(fn($trx) => $trx->paid_at === null)->sum('total_fee');
+                // Piutang: denda yang sudah tercatat (total_fee > 0) tapi belum
+                // ditandai lunas (paid_at masih null) — supaya "Total Pendapatan"
+                // (uang yang sudah masuk) dan "Belum Dibayar" (uang yang masih
+                // harus ditagih) sama-sama kelihatan dan saling melengkapi.
+                $totalUnpaid = (float) $rows->filter(fn ($trx) => $trx->paid_at === null)->sum('total_fee');
 
-        return [
-            'total_transactions' => $rows->pluck('loan_request_id')->unique()->count(),
-            'total_unit' => $rows->sum('quantity'),
-            'total_revenue' => (float) $rows->filter(fn($trx) => $trx->paid_at !== null)->sum('total_fee'),
-            'total_unpaid' => $totalUnpaid,
-            'total_peminjam' => $rows->pluck('user_id')->unique()->count(),
-            'avg_duration' => $rows->isEmpty() ? 0 : (int) round($avgDuration),
-        ];
+                return [
+                    'total_transactions' => $rows->pluck('loan_request_id')->unique()->count(),
+                    'total_unit' => $rows->sum('quantity'),
+                    'total_revenue' => (float) $rows->filter(fn ($trx) => $trx->paid_at !== null)->sum('total_fee'),
+                    'total_unpaid' => $totalUnpaid,
+                    'total_peminjam' => $rows->pluck('user_id')->unique()->count(),
+                    'avg_duration' => $rows->isEmpty() ? 0 : (int) round($avgDuration),
+                ];
 
-        });
+            });
     }
 
     // Breakdown semua status (termasuk pending & rejected) dalam rentang & kategori
@@ -230,35 +230,36 @@ class ReportController extends Controller
     private function buildStatusBreakdown(?Carbon $start, ?Carbon $end, string $category)
     {
         return $this->reportCacheRemember(
-        $this->reportCacheKey('status-breakdown', $start, $end, $category),
-        function () use ($start, $end, $category) {
-        $query = Transaction::with('item');
+            $this->reportCacheKey('status-breakdown', $start, $end, $category),
+            function () use ($start, $end, $category) {
+                $query = Transaction::with('item');
 
-        if ($start && $end) {
-            $query->whereBetween('created_at', [$start, $end]);
-        }
+                if ($start && $end) {
+                    $query->whereBetween('created_at', [$start, $end]);
+                }
 
-        if ($category !== 'all') {
-            $query->whereHas('item', fn($q) => $q->where('category', $category));
-        }
+                if ($category !== 'all') {
+                    $query->whereHas('item', fn ($q) => $q->where('category', $category));
+                }
 
-        $rows = $query->get()->groupBy('loan_request_id')->map(function ($group) {
-            $statuses = $group->pluck('status')->unique();
+                $rows = $query->get()->groupBy('loan_request_id')->map(function ($group) {
+                    $statuses = $group->pluck('status')->unique();
 
-            return $statuses->count() === 1
-                ? $statuses->first()
-                : ($statuses->contains('pending') ? 'pending' : 'booked');
-        });
+                    return $statuses->count() === 1
+                        ? $statuses->first()
+                        : ($statuses->contains('pending') ? 'pending' : 'booked');
+                });
 
-        return [
-            'pending' => $rows->filter(fn($s) => $s === 'pending')->count(),
-            'booked' => $rows->filter(fn($s) => $s === 'booked')->count(),
-            'completed' => $rows->filter(fn($s) => $s === 'completed')->count(),
-            'rejected' => $rows->filter(fn($s) => $s === 'rejected')->count(),
-        ];
+                return [
+                    'pending' => $rows->filter(fn ($s) => $s === 'pending')->count(),
+                    'booked' => $rows->filter(fn ($s) => $s === 'booked')->count(),
+                    'completed' => $rows->filter(fn ($s) => $s === 'completed')->count(),
+                    'rejected' => $rows->filter(fn ($s) => $s === 'rejected')->count(),
+                ];
 
-        });
+            });
     }
+
     /**
      * Cache hasil laporan selama 5 menit, per kombinasi filter (range+category).
      * TTL sengaja pendek (bukan 1 jam seperti Item::categories()) karena data
