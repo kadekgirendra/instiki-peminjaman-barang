@@ -23,6 +23,7 @@ class CartController extends Controller
             if ($request->wantsJson()) {
                 return response()->json(['message' => 'Jumlah melebihi stok yang tersedia.'], 422);
             }
+
             return back()->withErrors(['quantity' => 'Jumlah melebihi stok yang tersedia.']);
         }
 
@@ -31,12 +32,12 @@ class CartController extends Controller
         session(['loan_cart' => $cart]);
 
         // Simpan tanggal kalau dikirim (dari Katalog dengan filter tanggal aktif)
-        if (!empty($validated['start_date']) && !empty($validated['end_date'])) {
+        if (! empty($validated['start_date']) && ! empty($validated['end_date'])) {
             session([
                 'loan_prefill_dates' => [
                     'start_date' => $validated['start_date'],
                     'end_date' => $validated['end_date'],
-                ]
+                ],
             ]);
         }
 
@@ -53,6 +54,7 @@ class CartController extends Controller
 
         return redirect()->route('loan-requests.create');
     }
+
     public function remove(Request $request, Item $item)
     {
         $cart = session('loan_cart', []);

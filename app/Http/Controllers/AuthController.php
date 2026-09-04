@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Http\Requests\LoginRequest;
 use App\Http\Requests\RegisterRequest;
 use App\Models\User;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class AuthController extends Controller
@@ -20,11 +20,11 @@ class AuthController extends Controller
         $validated = $request->validated();
 
         User::create([
-            'username'  => $validated['username'],
-            'name'      => $validated['name'],
-            'nim_nidn'  => $validated['nim_nidn'],
-            'password'  => $validated['password'], // otomatis di-hash via cast 'hashed'
-            'role'      => 'user', // hardcode, TIDAK boleh dari input
+            'username' => $validated['username'],
+            'name' => $validated['name'],
+            'nim_nidn' => $validated['nim_nidn'],
+            'password' => $validated['password'], // otomatis di-hash via cast 'hashed'
+            'role' => 'user', // hardcode, TIDAK boleh dari input
         ]);
 
         return redirect()->route('login')->with('status', 'Akun berhasil dibuat, silakan login.');
@@ -55,5 +55,4 @@ class AuthController extends Controller
 
         return redirect()->route('login');
     }
-
 }

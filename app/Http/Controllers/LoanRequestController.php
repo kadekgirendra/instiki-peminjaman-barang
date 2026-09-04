@@ -6,15 +6,14 @@ use App\Models\Item;
 use App\Models\LoanRequest;
 use App\Models\Transaction;
 use App\Services\AvailabilityService;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class LoanRequestController extends Controller
 {
-    public function __construct(protected AvailabilityService $availability)
-    {
-    }
+    public function __construct(protected AvailabilityService $availability) {}
 
     public function create()
     {
@@ -27,12 +26,14 @@ class LoanRequestController extends Controller
 
         $cartItems = Item::whereIn('id', array_keys($cart))->get()->map(function ($item) use ($cart) {
             $item->cart_quantity = $cart[$item->id];
+
             return $item;
         });
 
         $catalogItems = Item::all()->map(function ($item) use ($cart) {
             $item->available_stock = $item->total_stock;
             $item->cart_quantity = $cart[$item->id] ?? 0;
+
             return $item;
         });
 
@@ -74,7 +75,7 @@ class LoanRequestController extends Controller
                     $qty = $cart[$item->id];
 
                     if (
-                        !$this->availability->isAvailable(
+                        ! $this->availability->isAvailable(
                             $item,
                             $validated['start_date'],
                             $validated['end_date'],
@@ -124,8 +125,8 @@ class LoanRequestController extends Controller
         return redirect()->route('transactions.index')->with([
             'loan_success' => true,
             'loan_items_summary' => $items->pluck('name')->implode(', '),
-            'loan_start_date' => \Carbon\Carbon::parse($validated['start_date'])->translatedFormat('j F Y'),
-            'loan_end_date' => \Carbon\Carbon::parse($validated['end_date'])->translatedFormat('j F Y'),
+            'loan_start_date' => Carbon::parse($validated['start_date'])->translatedFormat('j F Y'),
+            'loan_end_date' => Carbon::parse($validated['end_date'])->translatedFormat('j F Y'),
         ]);
     }
 }

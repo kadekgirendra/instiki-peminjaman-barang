@@ -1,9 +1,9 @@
 <?php
 
 namespace App\Http\Controllers;
+
 use App\Models\LoanRequest;
 use Illuminate\Http\Request;
-
 
 class ReturnController extends Controller
 {
@@ -25,14 +25,14 @@ class ReturnController extends Controller
 
         $validated = $request->validate([
             'photo' => 'required|image|mimes:jpg,jpeg,png|max:5120',
-            'note'  => 'nullable|string',
+            'note' => 'nullable|string',
         ]);
 
         $photoPath = $request->file('photo')->store('return-proofs', 'public');
 
         $loanRequest->transactions()->where('status', 'booked')->update([
-            'return_photo'        => $photoPath,
-            'return_note'         => $validated['note'],
+            'return_photo' => $photoPath,
+            'return_note' => $validated['note'],
             'return_requested_at' => now(),
         ]);
 
