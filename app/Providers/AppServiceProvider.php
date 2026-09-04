@@ -24,8 +24,9 @@ class AppServiceProvider extends ServiceProvider
     {
         // Layout mahasiswa/dosen — pengingat pinjaman milik akun yang sedang login.
         View::composer('components.app-layout', function ($view) {
-            if (!Auth::check()) {
+            if (! Auth::check()) {
                 $view->with('reminders', collect());
+
                 return;
             }
 
@@ -42,8 +43,9 @@ class AppServiceProvider extends ServiceProvider
         // Layout admin — pengingat lintas SEMUA mahasiswa: barang yang sudah
         // telat atau jatuh tempo dalam 2 hari ke depan (bukan milik admin sendiri).
         View::composer('components.admin-layout', function ($view) {
-            if (!Auth::check()) {
+            if (! Auth::check()) {
                 $view->with('reminders', collect());
+
                 return;
             }
 

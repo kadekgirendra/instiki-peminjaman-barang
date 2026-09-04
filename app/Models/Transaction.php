@@ -2,20 +2,19 @@
 
 namespace App\Models;
 
-
-
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Carbon;
 
 /**
- * @property \Illuminate\Support\Carbon $start_date
- * @property \Illuminate\Support\Carbon $end_date
- * @property \Illuminate\Support\Carbon|null $returned_at
+ * @property Carbon $start_date
+ * @property Carbon $end_date
+ * @property Carbon|null $returned_at
  */
-
 class Transaction extends Model
 {
     use HasFactory;
+
     protected $fillable = [
         'loan_request_id',
         'user_id',
@@ -35,10 +34,10 @@ class Transaction extends Model
     ];
 
     protected $casts = [
-        'start_date'  => 'date',
-        'end_date'    => 'date',
+        'start_date' => 'date',
+        'end_date' => 'date',
         'returned_at' => 'date',
-        'paid_at'     => 'datetime',
+        'paid_at' => 'datetime',
         'return_requested_at' => 'datetime',
     ];
 
@@ -82,6 +81,7 @@ class Transaction extends Model
                     ->orWhere('end_date', '<', $today);
             });
     }
+
     public function getIsOverdueAttribute(): bool
     {
         if ($this->status === 'booked') {

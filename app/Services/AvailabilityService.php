@@ -4,8 +4,8 @@ namespace App\Services;
 
 use App\Models\Item;
 use App\Models\Transaction;
-use Carbon\Carbon;
 use Carbon\CarbonPeriod;
+use Illuminate\Support\Collection;
 
 class AvailabilityService
 {
@@ -65,7 +65,7 @@ class AvailabilityService
      * dengan urutan berbeda bisa saling menunggu satu sama lain selamanya
      * (deadlock), dan salah satunya akan digagalkan otomatis oleh MySQL.
      */
-    public function lockItems(array $itemIds): \Illuminate\Support\Collection
+    public function lockItems(array $itemIds): Collection
     {
         return Item::whereIn('id', $itemIds)
             ->orderBy('id')
@@ -114,6 +114,7 @@ class AvailabilityService
 
         return $fullyBooked;
     }
+
     /**
      * Hitung stok tersedia untuk BANYAK barang sekaligus dalam 1 query,
      * bukan 1 query per barang. Dipakai khusus di halaman list/katalog
@@ -121,7 +122,7 @@ class AvailabilityService
      * beda dari getAvailableStock() yang tetap dipakai untuk cek 1 barang
      * spesifik (misal saat submit pengajuan / approve).
      *
-     * @param iterable<Item> $items
+     * @param  iterable<Item>  $items
      * @return array<int, int> [item_id => available_stock]
      */
     public function getAvailableStockBulk(iterable $items, string $startDate, string $endDate): array

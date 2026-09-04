@@ -4,15 +4,16 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Carbon;
 
 /**
- * @property \Illuminate\Support\Carbon $start_date
- * @property \Illuminate\Support\Carbon $end_date
+ * @property Carbon $start_date
+ * @property Carbon $end_date
  */
-
 class LoanRequest extends Model
 {
     use HasFactory;
+
     protected $fillable = ['user_id', 'start_date', 'end_date', 'purpose', 'document_path'];
 
     protected $casts = [
