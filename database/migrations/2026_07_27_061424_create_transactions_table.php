@@ -13,19 +13,19 @@ return new class extends Migration
     {
         Schema::create('transactions', function (Blueprint $table) {
             $table->id();
-        $table->foreignId('user_id')->constrained()->cascadeOnDelete();
-        $table->foreignId('item_id')->constrained()->cascadeOnDelete();
-        $table->date('start_date');
-        $table->date('end_date');
-        $table->text('purpose');
-        $table->unsignedInteger('quantity')->default(1);
-        $table->enum('status', ['pending', 'booked', 'completed', 'rejected'])->default('pending');
-        $table->decimal('total_fee', 10, 2)->default(0);
-        $table->string('document_path')->nullable(); // untuk KTM/Surat Tugas
-        $table->timestamps();
+            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('item_id')->constrained()->cascadeOnDelete();
+            $table->date('start_date');
+            $table->date('end_date');
+            $table->text('purpose');
+            $table->unsignedInteger('quantity')->default(1);
+            $table->enum('status', ['pending', 'booked', 'completed', 'rejected'])->default('pending');
+            $table->decimal('total_fee', 10, 2)->default(0);
+            $table->string('document_path')->nullable(); // untuk KTM/Surat Tugas
+            $table->timestamps();
 
-        // index penting untuk query overlap tanggal — dipakai terus-menerus di AvailabilityService
-        $table->index(['item_id', 'status', 'start_date', 'end_date']);
+            // index penting untuk query overlap tanggal — dipakai terus-menerus di AvailabilityService
+            $table->index(['item_id', 'status', 'start_date', 'end_date']);
         });
     }
 
