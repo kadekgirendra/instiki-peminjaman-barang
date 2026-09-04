@@ -18,13 +18,13 @@ class CalendarController extends Controller
             ->where('status', 'booked');
 
         if ($category !== 'all') {
-            $query->whereHas('item', fn($q) => $q->where('category', $category));
+            $query->whereHas('item', fn ($q) => $q->where('category', $category));
         }
 
         if ($search) {
             $query->where(function ($q) use ($search) {
-                $q->whereHas('item', fn($i) => $i->where('name', 'like', "%{$search}%"))
-                    ->orWhereHas('user', fn($u) => $u->where('name', 'like', "%{$search}%")
+                $q->whereHas('item', fn ($i) => $i->where('name', 'like', "%{$search}%"))
+                    ->orWhereHas('user', fn ($u) => $u->where('name', 'like', "%{$search}%")
                         ->orWhere('nim_nidn', 'like', "%{$search}%"));
             });
         }
@@ -41,13 +41,13 @@ class CalendarController extends Controller
 
             $baseInfo = [
                 'transaction_id' => $trx->id,
-                'item_name'      => $trx->item->name,
-                'category'       => $trx->item->category,
-                'quantity'       => $trx->quantity,
-                'user_id'        => $trx->user_id,
-                'user_name'      => $trx->user->name,
-                'user_nim'       => $trx->user->nim_nidn,
-                'purpose'        => $trx->purpose,
+                'item_name' => $trx->item->name,
+                'category' => $trx->item->category,
+                'quantity' => $trx->quantity,
+                'user_id' => $trx->user_id,
+                'user_name' => $trx->user->name,
+                'user_nim' => $trx->user->nim_nidn,
+                'purpose' => $trx->purpose,
             ];
 
             $events->push(array_merge($baseInfo, [
@@ -69,20 +69,20 @@ class CalendarController extends Controller
         // dicari admin sekali lihat, tanpa perlu klik-klik kalender dulu.
         $today = now()->toDateString();
         $summary = [
-            'total_booked'  => $bookedTransactions->count(),
-            'due_today'     => $bookedTransactions->filter(fn($t) => $t->end_date->toDateString() === $today)->count(),
-            'overdue'       => $bookedTransactions->filter(fn($t) => $t->is_overdue)->count(),
-            'starting_today' => $bookedTransactions->filter(fn($t) => $t->start_date->toDateString() === $today)->count(),
+            'total_booked' => $bookedTransactions->count(),
+            'due_today' => $bookedTransactions->filter(fn ($t) => $t->end_date->toDateString() === $today)->count(),
+            'overdue' => $bookedTransactions->filter(fn ($t) => $t->is_overdue)->count(),
+            'starting_today' => $bookedTransactions->filter(fn ($t) => $t->start_date->toDateString() === $today)->count(),
         ];
 
         $categories = Item::categories();
 
         return view('admin.calendar.index', [
-            'events'     => $events,
-            'summary'    => $summary,
+            'events' => $events,
+            'summary' => $summary,
             'categories' => $categories,
-            'category'   => $category,
-            'search'     => $search,
+            'category' => $category,
+            'search' => $search,
         ]);
     }
 }

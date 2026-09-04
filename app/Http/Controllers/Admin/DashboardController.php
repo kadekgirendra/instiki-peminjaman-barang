@@ -61,11 +61,11 @@ class DashboardController extends Controller
 
                 return (object) [
                     'user_name' => $trx->user->name,
-                    'user_nim'  => $trx->user->nim_nidn,
+                    'user_nim' => $trx->user->nim_nidn,
                     'item_name' => $trx->item->name,
-                    'label'     => $isReturn ? 'Kembali' : 'Pinjam',
+                    'label' => $isReturn ? 'Kembali' : 'Pinjam',
                     'is_return' => $isReturn,
-                    'waktu'     => $this->diffForHumansId($trx->updated_at),
+                    'waktu' => $this->diffForHumansId($trx->updated_at),
                 ];
             });
 
@@ -81,10 +81,10 @@ class DashboardController extends Controller
 
                 return (object) [
                     'user_name' => $trx->user->name,
-                    'user_nim'  => $trx->user->nim_nidn,
+                    'user_nim' => $trx->user->nim_nidn,
                     'item_name' => $trx->item->name,
                     'days_late' => $daysLate,
-                    'severity'  => $daysLate <= 1 ? 'warning' : 'danger',
+                    'severity' => $daysLate <= 1 ? 'warning' : 'danger',
                 ];
             });
 
@@ -136,16 +136,16 @@ class DashboardController extends Controller
 
         $minutes = now()->diffInMinutes($date);
         if ($minutes < 60) {
-            return $minutes . ' menit yang lalu';
+            return $minutes.' menit yang lalu';
         }
 
         $hours = now()->diffInHours($date);
         if ($hours < 24) {
-            return $hours . ' jam yang lalu';
+            return $hours.' jam yang lalu';
         }
 
         $days = now()->diffInDays($date);
 
-        return $days . ' hari yang lalu';
+        return $days.' hari yang lalu';
     }
 }
