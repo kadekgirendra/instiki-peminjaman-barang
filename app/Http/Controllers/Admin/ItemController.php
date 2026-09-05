@@ -88,7 +88,7 @@ class ItemController extends Controller
             if ($item->image) {
                 Storage::disk('public')->delete($item->image);
             }
-            $$validated['image'] = $this->storeResizedImage($request->file('image'));
+            $validated['image'] = $this->storeResizedImage($request->file('image'));
         }
 
         $item->update($validated);
@@ -99,16 +99,18 @@ class ItemController extends Controller
 
     public function destroy(Item $item)
     {
-        // Dulu ada guard "tolak hapus kalau punya riwayat transaksi" — sekarang
-        // TIDAK PERLU LAGI. Item pakai SoftDeletes, jadi delete() di sini cuma
-        // mengisi kolom deleted_at (UPDATE), bukan DELETE sungguhan — foreign key
-        // cascadeOnDelete di transactions.item_id tidak pernah ter-trigger,
-        // sehingga riwayat transaksi & data revenue tetap aman meski barang ini
-        // "dihapus" dari tampilan katalog.
-        if ($item->image) {
-            Storage::disk('public')->delete($item->image);
+        $hasActiveTransactions = $item->transactions()
+            ->whereIn('status', ['pending', 'booked'])
+            ->exists();
+
+        if ($hasActiveTransactions) {
+            return back()->withErrors([
+                'error' => 'Barang tidak dapat dihapus karena masih ada pengajuan yang tertunda atau sedang dipinjam.',
+            ]);
         }
 
+        // File foto sengaja TIDAK dihapus dari storage saat soft-delete,
+        // agar riwayat transaksi masa lalu dan tampilan audit tetap memiliki gambar utuh.
         $item->delete();
         Item::forgetCategoriesCache();
 
