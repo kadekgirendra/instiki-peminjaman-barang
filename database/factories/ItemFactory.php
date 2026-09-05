@@ -22,7 +22,7 @@ class ItemFactory extends Factory
             'category' => fake()->randomElement(['Kamera', 'Proyektor', 'Alat Lab', 'Audio']),
             'description' => fake()->sentence(),
             'total_stock' => fake()->numberBetween(1, 5),
-
+            'daily_fine_rate' => fake()->randomElement([0, 2000, 5000]),
         ];
     }
 }
