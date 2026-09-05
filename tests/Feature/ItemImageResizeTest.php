@@ -54,4 +54,38 @@ class ItemImageResizeTest extends TestCase
         // sekitar 1.5x lebarnya.
         $this->assertEqualsWithDelta($width * 1.5, $height, 2);
     }
+
+    public function test_updating_item_image_replaces_old_file_and_updates_database(): void
+    {
+        Storage::fake('public');
+
+        $admin = User::factory()->admin()->create();
+        $item = Item::factory()->create([
+            'image' => 'items/gambar-lama.jpg',
+        ]);
+        Storage::disk('public')->put('items/gambar-lama.jpg', 'konten dummy');
+
+        $newImage = UploadedFile::fake()->image('gambar-baru.png', 1500, 1500);
+
+        $response = $this->actingAs($admin)->put(route('admin.items.update', $item), [
+            'name' => $item->name,
+            'category' => $item->category,
+            'description' => $item->description,
+            'total_stock' => $item->total_stock,
+            'daily_fine_rate' => $item->daily_fine_rate,
+            'image' => $newImage,
+        ]);
+
+        $response->assertRedirect(route('admin.items.index'));
+
+        $item->refresh();
+
+        // Kolom 'image' HARUS berubah ke path yang baru, bukan tetap ke path lama.
+        $this->assertNotEquals('items/gambar-lama.jpg', $item->image);
+        $this->assertNotNull($item->image);
+        Storage::disk('public')->assertExists($item->image);
+
+        // File lama harus sudah terhapus dari disk.
+        Storage::disk('public')->assertMissing('items/gambar-lama.jpg');
+    }
 }
