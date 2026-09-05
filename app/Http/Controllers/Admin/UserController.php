@@ -147,9 +147,16 @@ class UserController extends Controller
 
     public function destroy(User $user)
     {
-        // Sama seperti Item — User sekarang pakai SoftDeletes, jadi aman dihapus
-        // meski masih punya riwayat transaksi. Datanya tidak hilang, cuma
-        // disembunyikan dari query normal (deleted_at terisi).
+        $hasActiveTransactions = $user->transactions()
+            ->whereIn('status', ['pending', 'booked'])
+            ->exists();
+
+        if ($hasActiveTransactions) {
+            return back()->withErrors([
+                'error' => 'User tidak dapat dihapus karena masih memiliki peminjaman aktif atau permintaan tertunda.',
+            ]);
+        }
+
         $user->delete();
 
         return redirect()->route('admin.users.index')->with('success', 'User berhasil dihapus.');
