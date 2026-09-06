@@ -92,6 +92,8 @@ class SoftDeleteIntegrityTest extends TestCase
 
     public function test_admin_pages_render_without_error_when_items_or_users_are_soft_deleted(): void
     {
+        $this->withoutVite();
+
         $admin = User::factory()->admin()->create();
         $user = User::factory()->create();
         $item = Item::factory()->create();
