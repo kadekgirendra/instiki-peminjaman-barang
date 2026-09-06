@@ -57,6 +57,7 @@ class BusinessLogicValidationTest extends TestCase
     {
         $this->withoutVite();
 
+        /** @var User $user */
         $user = User::factory()->create();
         $item = Item::factory()->create(['total_stock' => 5]);
 
@@ -84,6 +85,7 @@ class BusinessLogicValidationTest extends TestCase
 
     public function test_cannot_add_soft_deleted_item_to_cart(): void
     {
+        /** @var User $user */
         $user = User::factory()->create();
         $item = Item::factory()->create();
 
@@ -100,6 +102,7 @@ class BusinessLogicValidationTest extends TestCase
 
     public function test_prefill_dates_cleared_when_cart_becomes_empty(): void
     {
+        /** @var User $user */
         $user = User::factory()->create();
         $item = Item::factory()->create(['total_stock' => 5]);
 
@@ -118,6 +121,7 @@ class BusinessLogicValidationTest extends TestCase
     {
         Storage::fake('public');
 
+        /** @var User $user */
         $user = User::factory()->create();
         $item = Item::factory()->create(['total_stock' => 5]);
         $document = UploadedFile::fake()->create('ktm.pdf', 100);
@@ -143,6 +147,7 @@ class BusinessLogicValidationTest extends TestCase
     {
         Storage::fake('public');
 
+        /** @var User $user */
         $user = User::factory()->create();
         $item = Item::factory()->create(['total_stock' => 5]);
         $document = UploadedFile::fake()->create('ktm.pdf', 100);

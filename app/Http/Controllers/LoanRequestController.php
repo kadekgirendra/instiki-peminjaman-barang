@@ -10,6 +10,7 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class LoanRequestController extends Controller
 {
@@ -115,20 +116,20 @@ class LoanRequestController extends Controller
         } catch (\PDOException $e) {
             // Error database / deadlock — laporkan ke log dan bersihkan dokumen upload
             report($e);
-            \Storage::disk('public')->delete($documentPath);
+            Storage::disk('public')->delete($documentPath);
 
             return back()->withErrors(['cart' => 'Terjadi kesalahan saat memproses pengajuan. Silakan coba lagi.']);
         } catch (\RuntimeException $e) {
             // Booking gagal (stok tidak cukup) — hapus dokumen yang sudah
             // terlanjur ter-upload supaya tidak jadi file sampah di storage.
-            \Storage::disk('public')->delete($documentPath);
+            Storage::disk('public')->delete($documentPath);
 
             return back()->withErrors(['cart' => $e->getMessage()]);
         } catch (\Throwable $e) {
             // Error tak terduga (koneksi / sistem) — catat ke log
             // dan hapus dokumen yang terlanjur ter-upload supaya tidak jadi sampah.
             report($e);
-            \Storage::disk('public')->delete($documentPath);
+            Storage::disk('public')->delete($documentPath);
 
             return back()->withErrors(['cart' => 'Terjadi kesalahan saat memproses pengajuan. Silakan coba lagi.']);
         }
