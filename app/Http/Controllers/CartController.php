@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Item;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class CartController extends Controller
 {
@@ -11,7 +12,7 @@ class CartController extends Controller
     {
 
         $validated = $request->validate([
-            'item_id' => 'required|exists:items,id',
+            'item_id' => ['required', Rule::exists('items', 'id')->whereNull('deleted_at')],
             'quantity' => 'required|integer|min:1',
             'start_date' => 'nullable|date',
             'end_date' => 'nullable|date',
@@ -59,7 +60,12 @@ class CartController extends Controller
     {
         $cart = session('loan_cart', []);
         unset($cart[$item->id]);
-        session(['loan_cart' => $cart]);
+
+        if (empty($cart)) {
+            session()->forget(['loan_cart', 'loan_prefill_dates']);
+        } else {
+            session(['loan_cart' => $cart]);
+        }
 
         if ($request->wantsJson()) {
             return response()->json(['success' => true]);
