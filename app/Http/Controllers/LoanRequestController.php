@@ -112,15 +112,28 @@ class LoanRequestController extends Controller
 
                 return $lockedItems;
             });
+        } catch (\PDOException $e) {
+            // Error database / deadlock — laporkan ke log dan bersihkan dokumen upload
+            report($e);
+            \Storage::disk('public')->delete($documentPath);
+
+            return back()->withErrors(['cart' => 'Terjadi kesalahan saat memproses pengajuan. Silakan coba lagi.']);
         } catch (\RuntimeException $e) {
             // Booking gagal (stok tidak cukup) — hapus dokumen yang sudah
             // terlanjur ter-upload supaya tidak jadi file sampah di storage.
             \Storage::disk('public')->delete($documentPath);
 
             return back()->withErrors(['cart' => $e->getMessage()]);
+        } catch (\Throwable $e) {
+            // Error tak terduga (koneksi / sistem) — catat ke log
+            // dan hapus dokumen yang terlanjur ter-upload supaya tidak jadi sampah.
+            report($e);
+            \Storage::disk('public')->delete($documentPath);
+
+            return back()->withErrors(['cart' => 'Terjadi kesalahan saat memproses pengajuan. Silakan coba lagi.']);
         }
 
-        session()->forget('loan_cart');
+        session()->forget(['loan_cart', 'loan_prefill_dates']);
 
         return redirect()->route('transactions.index')->with([
             'loan_success' => true,

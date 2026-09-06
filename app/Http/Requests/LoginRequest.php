@@ -53,7 +53,6 @@ class LoginRequest extends FormRequest
                 'username' => 'Terlalu banyak percobaan login. Coba lagi dalam '.RateLimiter::availableIn($this->throttleKey()).' detik.',
             ]);
         }
-        RateLimiter::hit($this->throttleKey(), 60);
     }
 
     protected function throttleKey(): string
