@@ -50,9 +50,17 @@ class ItemController extends Controller
         return view('items.index', compact('items', 'categories'));
     }
 
-    public function show(Item $item)
+    public function show(Request $request, Item $item)
     {
         $availableStock = $item->total_stock;
+
+        if ($request->filled(['start_date', 'end_date'])) {
+            $availableStock = $this->availability->getAvailableStock(
+                $item,
+                $request->start_date,
+                $request->end_date
+            );
+        }
 
         return view('items.show', compact('item', 'availableStock'));
     }
