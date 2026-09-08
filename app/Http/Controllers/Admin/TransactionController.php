@@ -22,9 +22,14 @@ class TransactionController extends Controller
         if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
-                $q->whereHas('user', fn ($u) => $u->where('name', 'like', "%{$search}%")
+                // withTrashed() wajib di sini — relasi Transaction::user() memang
+                // sudah pakai withTrashed(), tapi whereHas() tidak mewarisinya
+                // secara otomatis. Tanpa ini, transaksi milik user yang sudah
+                // soft-deleted tidak akan muncul saat admin mencari nama mereka.
+                $q->whereHas('user', fn ($u) => $u->withTrashed()
+                    ->where('name', 'like', "%{$search}%")
                     ->orWhere('nim_nidn', 'like', "%{$search}%"))
-                    ->orWhereHas('item', fn ($i) => $i->where('name', 'like', "%{$search}%"));
+                    ->orWhereHas('item', fn ($i) => $i->withTrashed()->where('name', 'like', "%{$search}%"));
             });
         }
 
@@ -241,7 +246,13 @@ class TransactionController extends Controller
                     }
                 }
 
-                $loanRequest->transactions()->where('status', 'pending')->update(['status' => 'booked']);
+                // Update HANYA baris yang sudah di-lock & lolos cek stok di atas
+                // (filter by ID eksplisit, bukan WHERE status='pending' lagi).
+                // Mencegah transaksi 'pending' lain yang mungkin masuk ke
+                // loan_request ini setelah lock ikut ter-booked tanpa dicek stoknya.
+                $loanRequest->transactions()
+                    ->whereIn('id', $pendingItems->pluck('id'))
+                    ->update(['status' => 'booked']);
             });
         } catch (\RuntimeException $e) {
             return back()->withErrors(['error' => $e->getMessage()]);
