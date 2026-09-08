@@ -17,7 +17,9 @@ class ReturnAuthorizationTest extends TestCase
     {
         $this->withoutVite();
 
+        /** @var User $owner */
         $owner = User::factory()->create();
+        /** @var User $stranger */
         $stranger = User::factory()->create();
 
         $item = Item::factory()->create(['total_stock' => 1]);
