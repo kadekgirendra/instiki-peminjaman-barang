@@ -4,6 +4,8 @@
 
 🔗 **Demo:** https://sipinjaminstiki.my.id
 
+> ⚠️ **Catatan:** Server demo saat ini tidak aktif (subscription VPS sedang tidak berjalan). Pipeline CI untuk pengujian otomatis tetap aktif di setiap pull request.
+
 ---
 
 ## 📋 Fitur
@@ -36,7 +38,7 @@
 | Build Tool | Vite |
 | Kalender | FullCalendar |
 | Hosting | VPS (Ubuntu 24.04, Nginx) |
-| CI/CD | GitHub Actions (auto-deploy) |
+| CI/CD | GitHub Actions (tests otomatis aktif; auto-deploy ke VPS sementara dinonaktifkan) |
 
 ---
 
