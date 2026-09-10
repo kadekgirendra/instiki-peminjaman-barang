@@ -140,3 +140,13 @@ tambahkan `hit()` di `ensureIsNotRateLimited()` — method itu cuma boleh
 CEK (`tooManyAttempts()`), tidak boleh ikut menghitung. Kalau ada `hit()`
 di kedua tempat, counter naik 2x per percobaan gagal, user ke-lockout
 di percobaan ke-3, bukan ke-5 seperti seharusnya.
+
+## 12. Jangan Andalkan `\RuntimeException`/`\PDOException` Generik untuk Membedakan Error Bisnis vs Sistem
+
+`Illuminate\Database\QueryException` (dilempar Eloquent untuk error DB
+seperti deadlock) EXTENDS `\RuntimeException`, BUKAN `\PDOException`.
+Kalau butuh membedakan "error bisnis yang sengaja dilempar sendiri" dari
+"error sistem tak terduga", WAJIB pakai custom Exception class
+(`App\Exceptions\StockUnavailableException` dkk), JANGAN pakai
+`\RuntimeException` polos — itu akan ketiban tertangkap bareng dengan
+`QueryException` dan berisiko membocorkan detail SQL mentah ke user.
