@@ -11,7 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
-
+use App\Exceptions\StockUnavailableException;
 class LoanRequestController extends Controller
 {
     public function __construct(protected AvailabilityService $availability) {}
@@ -84,7 +84,7 @@ class LoanRequestController extends Controller
                             lock: true
                         )
                     ) {
-                        throw new \RuntimeException(
+                        throw new StockUnavailableException(
                             "Stok \"{$item->name}\" tidak mencukupi untuk jumlah/tanggal yang dipilih."
                         );
                     }
@@ -119,7 +119,7 @@ class LoanRequestController extends Controller
             Storage::disk('public')->delete($documentPath);
 
             return back()->withErrors(['cart' => 'Terjadi kesalahan saat memproses pengajuan. Silakan coba lagi.']);
-        } catch (\RuntimeException $e) {
+        } catch (StockUnavailableException $e) {
             // Booking gagal (stok tidak cukup) — hapus dokumen yang sudah
             // terlanjur ter-upload supaya tidak jadi file sampah di storage.
             Storage::disk('public')->delete($documentPath);
