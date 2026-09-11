@@ -11,6 +11,7 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
+use Illuminate\Support\Facades\Log;
 
 class BusinessLogicValidationTest extends TestCase
 {
@@ -78,7 +79,7 @@ class BusinessLogicValidationTest extends TestCase
 
         // Dengan filter tanggal yang overlap: ketersediaan = 5 - 3 = 2
         $this->actingAs($user)
-            ->get(route('items.show', $item).'?start_date=2026-10-02&end_date=2026-10-04')
+            ->get(route('items.show', $item) . '?start_date=2026-10-02&end_date=2026-10-04')
             ->assertOk()
             ->assertViewHas('availableStock', 2);
     }
@@ -146,6 +147,7 @@ class BusinessLogicValidationTest extends TestCase
     public function test_unexpected_exception_during_loan_request_reports_error_and_cleans_up_document(): void
     {
         Storage::fake('public');
+        Log::spy();
 
         /** @var User $user */
         $user = User::factory()->create();
@@ -169,9 +171,61 @@ class BusinessLogicValidationTest extends TestCase
                 'document' => $document,
             ]);
 
+
         $response->assertSessionHasErrors(['cart' => 'Terjadi kesalahan saat memproses pengajuan. Silakan coba lagi.']);
 
+        Log::shouldHaveReceived('error')
+            ->withArgs(fn($message) => $message === 'Deadlock simulated')
+            ->once();
         // File dokumen upload harus tetap bersih dari storage (tidak jadi file sampah)
         $this->assertEmpty(Storage::disk('public')->files('documents'));
+    }
+    public function test_stock_unavailable_exception_shows_business_message_and_cleans_up_document(): void
+    {
+        Storage::fake('public');
+
+        /** @var User $user */
+        $user = User::factory()->create();
+        $item = Item::factory()->create(['total_stock' => 5]);
+        $document = UploadedFile::fake()->create('ktm.pdf', 100);
+
+        $mockAvailability = \Mockery::mock(AvailabilityService::class);
+
+        $mockAvailability->shouldReceive('lockItems')
+            ->once()
+            ->andReturn(collect([$item])->keyBy('id'));
+
+        $mockAvailability->shouldReceive('isAvailable')
+            ->once()
+            ->andReturnFalse();
+
+        $this->app->instance(AvailabilityService::class, $mockAvailability);
+
+        $response = $this->actingAs($user)
+            ->withSession([
+                'loan_cart' => [$item->id => 2],
+            ])
+            ->post(route('loan-requests.store'), [
+                'start_date' => now()->toDateString(),
+                'end_date' => now()->addDays(2)->toDateString(),
+                'purpose' => 'Praktikum',
+                'document' => $document,
+            ]);
+
+        $response->assertSessionHasErrors([
+            'cart' => "Stok \"{$item->name}\" tidak mencukupi untuk jumlah/tanggal yang dipilih.",
+        ]);
+
+        // Pastikan pesan bisnis asli ditampilkan,
+        // bukan pesan error generik.
+        $this->assertSame(
+            "Stok \"{$item->name}\" tidak mencukupi untuk jumlah/tanggal yang dipilih.",
+            session('errors')->first('cart')
+        );
+
+        // File upload harus dibersihkan ketika booking gagal.
+        $this->assertEmpty(
+            Storage::disk('public')->files('documents')
+        );
     }
 }
