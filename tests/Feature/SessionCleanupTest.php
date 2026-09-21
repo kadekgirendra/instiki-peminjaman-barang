@@ -76,4 +76,3 @@ class SessionCleanupTest extends TestCase
         $this->assertEquals([$itemToKeep->id => 2], session('loan_cart'));
     }
 }
-

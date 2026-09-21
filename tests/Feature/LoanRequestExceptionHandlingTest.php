@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Services\AvailabilityService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
@@ -65,7 +66,7 @@ class LoanRequestExceptionHandlingTest extends TestCase
 
         $this->app->instance(AvailabilityService::class, new class extends AvailabilityService
         {
-            public function lockItems(array $itemIds): \Illuminate\Support\Collection
+            public function lockItems(array $itemIds): Collection
             {
                 throw new \RuntimeException('Simulasi: koneksi database terputus saat lockForUpdate.');
             }
