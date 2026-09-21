@@ -26,14 +26,14 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Copy .env
-        run: cp .env.example .env
-
       - name: Install dependency PHP
         run: composer install --no-progress --prefer-dist --optimize-autoloader
 
-      - name: Generate app key
-        run: php artisan key:generate
+      - name: Prepare Laravel environment
+        run: |
+          cp .env.example .env
+          php artisan key:generate --force
+          php artisan config:clear
 
       - name: Install & build asset frontend
         run: |
