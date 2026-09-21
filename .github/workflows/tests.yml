@@ -1,0 +1,47 @@
+name: Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout kode
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mbstring, gd, pdo_sqlite, sqlite3
+          coverage: none
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Copy .env
+        run: cp .env.example .env
+
+      - name: Install dependency PHP
+        run: composer install --no-progress --prefer-dist --optimize-autoloader
+
+      - name: Generate app key
+        run: php artisan key:generate
+
+      - name: Install & build asset frontend
+        run: |
+          npm ci
+          npm run build
+
+      - name: Cek format kode (Laravel Pint)
+        run: ./vendor/bin/pint --test
+
+      - name: Jalankan test suite
+        run: php artisan test
