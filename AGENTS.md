@@ -66,7 +66,7 @@ Model `Item` dan `User` pakai `SoftDeletes`. Ini artinya:
 
 ## 5. Intervention Image v4 — API Berbeda dari v3/Tutorial Lama
 
-Package `intervention/image` versi 4.3.2 yang dipakai project ini PUNYA
+Package `intervention/image` versi 4.x yang dipakai project ini PUNYA
 method yang beda nama dari versi lama yang sering muncul di tutorial:
 
 | Yang BENAR (v4) | Yang SALAH (v2/v3, jangan dipakai) |
@@ -94,11 +94,11 @@ atau `toJpeg()`, itu SALAH untuk versi package ini — akan error
 ## 7. Deployment — JANGAN Otomatis Aktifkan Ulang
 
 - Workflow `.github/workflows/deploy.yml` SEDANG DI-DISABLE (VPS tidak
-  berlangganan lagi per [tanggal]). JANGAN aktifkan ulang tanpa konfirmasi
-  eksplisit dari pemilik project — cek dulu apakah subscription VPS sudah
-  aktif lagi.
+  berlangganan lagi sejak Agustus 2026). JANGAN aktifkan ulang tanpa
+  konfirmasi eksplisit dari pemilik project — cek dulu apakah subscription
+  VPS sudah aktif lagi.
 - `.github/workflows/tests.yml` TETAP AKTIF dan WAJIB tetap jalan di setiap
-  PR — jangan pernah disable ini.
+  PR — jangan pernah disable ini atau bypass step `--test` (Pint).
 
 ## 8. Rate Limiting — Jangan Dihapus
 
@@ -140,3 +140,50 @@ tambahkan `hit()` di `ensureIsNotRateLimited()` — method itu cuma boleh
 CEK (`tooManyAttempts()`), tidak boleh ikut menghitung. Kalau ada `hit()`
 di kedua tempat, counter naik 2x per percobaan gagal, user ke-lockout
 di percobaan ke-3, bukan ke-5 seperti seharusnya.
+
+## 12. Jangan Andalkan `\RuntimeException`/`\PDOException` Generik untuk Membedakan Error Bisnis vs Sistem
+
+`Illuminate\Database\QueryException` (dilempar Eloquent untuk error DB
+seperti deadlock) EXTENDS `\RuntimeException`, BUKAN `\PDOException`.
+Kalau butuh membedakan "error bisnis yang sengaja dilempar sendiri" dari
+"error sistem tak terduga", WAJIB pakai custom Exception class
+(`App\Exceptions\StockUnavailableException` dkk), JANGAN pakai
+`\RuntimeException` polos — itu akan ketiban tertangkap bareng dengan
+`QueryException` dan berisiko membocorkan detail SQL mentah ke user.
+
+## 13. Jalankan Pint Sebelum Commit File Baru
+
+Setiap kali menambahkan file PHP baru (controller, test, exception, dll),
+WAJIB jalankan `./vendor/bin/pint` sebelum commit — CI (`tests.yml`) akan
+menolak PR yang formatnya belum sesuai standar Laravel Pint. File yang
+dibuat lewat editor manual atau AI assistant SERING tidak otomatis
+mengikuti format ini.
+
+## 14. Jangan Percaya Diagnosis "Genuine Bug" Tanpa Cek Root Cause Log Dulu
+
+Kalau SEMUA test gagal dengan exception yang SAMA PERSIS (misal
+`MissingAppKeyException`), itu tanda kegagalan infrastruktur/environment
+CI, BUKAN bukti banyak bug logika berbeda. Jangan re-write kode fitur
+(login, cache, policy, dst) berdasarkan nama test yang gagal tanpa
+memverifikasi assertion-nya BENAR-BENAR sempat dijalankan (bukan crash
+duluan di tahap boot). Cek dulu apakah fitur itu sudah pernah lolos test
+lokal sebelumnya sebelum menyimpulkan ada regresi baru.
+
+**Kasus nyata (September 2026):** CI gagal total dengan
+`MissingAppKeyException` di 35 test. Beberapa laporan otomatis
+menyimpulkan ada 5-6 bug terpisah (rate limiter, cache, policy, session,
+soft-delete) dan menyarankan re-write kode fitur tersebut. Setelah
+`APP_KEY` ditambahkan ke `phpunit.xml`, SEMUA 35 test langsung hijau
+tanpa satu baris pun kode fitur diubah — membuktikan akarnya cuma 1
+(environment CI), bukan banyak bug logika seperti yang diklaim.
+
+## 15. `APP_KEY` untuk Testing Ada di `phpunit.xml`, BUKAN `.env.example`
+
+- `phpunit.xml` punya `APP_KEY` statis khusus testing — ini AMAN dan
+  MEMANG HARUS begitu, karena test selalu jalan di SQLite `:memory:` yang
+  fresh tiap run, tidak pernah mengenkripsi data sungguhan siapapun.
+- `.env.example` HARUS tetap `APP_KEY=` (kosong) — JANGAN pernah diisi
+  key sungguhan di situ. Itu template untuk clone baru; tiap orang wajib
+  generate key sendiri lewat `php artisan key:generate`. Mengisi key
+  valid di `.env.example` berisiko banyak instalasi berbeda memakai
+  key yang sama kalau developer lupa generate ulang.
