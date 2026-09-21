@@ -2,9 +2,4 @@
 
 namespace App\Exceptions;
 
-use Exception;
-
-class StockUnavailableException extends Exception
-{
-
-}
+class StockUnavailableException extends \RuntimeException {}

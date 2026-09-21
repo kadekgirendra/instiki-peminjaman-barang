@@ -40,7 +40,7 @@ class ItemShowAvailabilityTest extends TestCase
         ]);
 
         $response = $this->actingAs($user)->get(
-            route('items.show', $item) . '?start_date=' . $startDate . '&end_date=' . $endDate
+            route('items.show', $item).'?start_date='.$startDate.'&end_date='.$endDate
         );
 
         $response->assertOk();
@@ -67,7 +67,7 @@ class ItemShowAvailabilityTest extends TestCase
         $checkEnd = now()->addDays(10)->toDateString();
 
         $response = $this->actingAs($user)->get(
-            route('items.show', $item) . '?start_date=' . $checkStart . '&end_date=' . $checkEnd
+            route('items.show', $item).'?start_date='.$checkStart.'&end_date='.$checkEnd
         );
 
         $response->assertOk();

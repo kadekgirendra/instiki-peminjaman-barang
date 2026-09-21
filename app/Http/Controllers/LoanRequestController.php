@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Exceptions\StockUnavailableException;
 use App\Models\Item;
 use App\Models\LoanRequest;
 use App\Models\Transaction;
@@ -11,7 +12,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
-use App\Exceptions\StockUnavailableException;
+
 class LoanRequestController extends Controller
 {
     public function __construct(protected AvailabilityService $availability) {}
