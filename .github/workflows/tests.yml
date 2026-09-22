@@ -42,6 +42,8 @@ jobs:
 
       - name: Cek format kode (Laravel Pint)
         run: ./vendor/bin/pint --test
+      - name: Analisis statis (Larastan)
+        run: ./vendor/bin/phpstan analyse --memory-limit=1G
 
       - name: Jalankan test suite
         run: php artisan test
