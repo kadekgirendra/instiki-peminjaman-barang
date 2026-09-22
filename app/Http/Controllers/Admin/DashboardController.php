@@ -139,16 +139,16 @@ class DashboardController extends Controller
 
         $minutes = now()->diffInMinutes($date);
         if ($minutes < 60) {
-            return $minutes . ' menit yang lalu';
+            return $minutes.' menit yang lalu';
         }
 
         $hours = now()->diffInHours($date);
         if ($hours < 24) {
-            return $hours . ' jam yang lalu';
+            return $hours.' jam yang lalu';
         }
 
         $days = now()->diffInDays($date);
 
-        return $days . ' hari yang lalu';
+        return $days.' hari yang lalu';
     }
 }
