@@ -1,0 +1,14 @@
+includes:
+    - vendor/larastan/larastan/extension.neon
+
+parameters:
+    paths:
+        - app
+
+    level: 5
+
+    ignoreErrors:
+        - '#Access to an undefined property App\\Models\\Item::\$available_stock#'
+        - '#Access to an undefined property App\\Models\\Item::\$borrowed_now#'
+        - '#Access to an undefined property App\\Models\\Item::\$cart_quantity#'
+        - '#Access to an undefined property App\\Models\\User::\$email#'

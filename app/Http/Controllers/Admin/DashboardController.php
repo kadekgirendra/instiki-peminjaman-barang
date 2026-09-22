@@ -126,8 +126,11 @@ class DashboardController extends Controller
         return round((($after - $before) / $before) * 100, 1);
     }
 
-    private function diffForHumansId(Carbon $date): string
+    private function diffForHumansId(?\Carbon\Carbon $date): string
     {
+        if ($date === null) {
+            return '-';
+        }
         $seconds = now()->diffInSeconds($date);
 
         if ($seconds < 60) {
