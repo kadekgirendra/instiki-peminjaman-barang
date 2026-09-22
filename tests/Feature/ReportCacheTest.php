@@ -67,4 +67,20 @@ class ReportCacheTest extends TestCase
             null
         );
     }
+
+    public function test_report_recovers_gracefully_when_cache_is_corrupted(): void
+    {
+        Cache::flush();
+
+        // Simulasikan cache korup — taruh STRING mentah, bukan Collection,
+        // persis seperti gejala nyata yang pernah terjadi di production.
+        Cache::put('report:item-rows:null:null:all', 'data-korup-bukan-array', 300);
+
+        $admin = User::factory()->admin()->create();
+
+        $response = $this->actingAs($admin)->get(route('admin.reports.index', ['range' => 'all', 'category' => 'all']));
+
+        // Halaman harus TETAP berhasil dibuka (200), bukan crash TypeError.
+        $response->assertOk();
+    }
 }

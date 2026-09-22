@@ -164,7 +164,8 @@ class ReportController extends Controller
                     ->sortByDesc('total_unit')
                     ->values();
 
-            });
+            }
+        );
 
     }
 
@@ -192,7 +193,8 @@ class ReportController extends Controller
                     })
                     ->sortByDesc('total_unit')
                     ->values();
-            });
+            }
+        );
     }
 
     // Kartu ringkasan di atas halaman.
@@ -220,7 +222,8 @@ class ReportController extends Controller
                     'avg_duration' => $rows->isEmpty() ? 0 : (int) round($avgDuration),
                 ];
 
-            });
+            }
+        );
     }
 
     // Breakdown semua status (termasuk pending & rejected) dalam rentang & kategori
@@ -257,7 +260,8 @@ class ReportController extends Controller
                     'rejected' => $rows->filter(fn ($s) => $s === 'rejected')->count(),
                 ];
 
-            });
+            }
+        );
     }
 
     /**
@@ -271,7 +275,23 @@ class ReportController extends Controller
      */
     private function reportCacheRemember(string $key, callable $callback)
     {
-        return Cache::remember($key, 300, $callback);
+        try {
+            $result = Cache::remember($key, 300, $callback);
+
+            // Validasi tambahan: hasil dari cache HARUS berupa Collection/array,
+            // bukan string atau tipe lain. Kalau ternyata korup (misal karena
+            // masalah serialisasi di cache driver 'database'), buang cache-nya
+            // dan hitung ulang langsung, daripada membiarkan Blade crash.
+            if (! is_iterable($result)) {
+                throw new \RuntimeException('Cache laporan korup: hasil bukan iterable.');
+            }
+
+            return $result;
+        } catch (\Throwable $e) {
+            Cache::forget($key);
+
+            return $callback();
+        }
     }
 
     private function reportCacheKey(string $method, ?Carbon $start, ?Carbon $end, string $category): string
