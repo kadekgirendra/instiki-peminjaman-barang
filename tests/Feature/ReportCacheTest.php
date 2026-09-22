@@ -63,10 +63,11 @@ class ReportCacheTest extends TestCase
         // Filter berbeda (7d vs 30d) harus punya cache key TERPISAH — kalau
         // key-nya kebentur/sama, ini akan gagal karena salah satu tidak ada.
         $this->assertNotEquals(
-            Cache::get('report:summary:' . now()->subDays(7)->startOfDay()->toDateString() . ':' . now()->endOfDay()->toDateString() . ':all'),
+            Cache::get('report:summary:'.now()->subDays(7)->startOfDay()->toDateString().':'.now()->endOfDay()->toDateString().':all'),
             null
         );
     }
+
     public function test_report_recovers_gracefully_when_cache_is_corrupted(): void
     {
         Cache::flush();

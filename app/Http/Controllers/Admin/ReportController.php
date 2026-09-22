@@ -46,7 +46,7 @@ class ReportController extends Controller
         $itemRows = $this->buildItemRows($start, $end, $category);
         $borrowerRows = $this->buildBorrowerRows($start, $end, $category);
 
-        $filename = 'laporan-peminjaman-' . now()->format('Y-m-d') . '.csv';
+        $filename = 'laporan-peminjaman-'.now()->format('Y-m-d').'.csv';
 
         return response()->streamDownload(function () use ($itemRows, $borrowerRows) {
             $handle = fopen('php://output', 'w');
@@ -93,7 +93,7 @@ class ReportController extends Controller
             'printedAt' => now()->translatedFormat('j F Y, H:i'),
         ])->setPaper('a4', 'portrait');
 
-        $filename = 'laporan-peminjaman-' . now()->format('Y-m-d') . '.pdf';
+        $filename = 'laporan-peminjaman-'.now()->format('Y-m-d').'.pdf';
 
         return $pdf->download($filename);
     }
@@ -132,7 +132,7 @@ class ReportController extends Controller
         }
 
         if ($category !== 'all') {
-            $query->whereHas('item', fn($q) => $q->where('category', $category));
+            $query->whereHas('item', fn ($q) => $q->where('category', $category));
         }
 
         return $query;
@@ -147,7 +147,7 @@ class ReportController extends Controller
                     ->groupBy('item_id')
                     ->map(function ($group) {
                         $item = $group->first()->item;
-                        $avgDays = $group->avg(fn($trx) => max(1, $trx->start_date->diffInDays($trx->end_date)));
+                        $avgDays = $group->avg(fn ($trx) => max(1, $trx->start_date->diffInDays($trx->end_date)));
 
                         return [
                             'name' => $item->name,
@@ -158,7 +158,7 @@ class ReportController extends Controller
                             // Cuma denda yang sudah ditandai lunas (paid_at terisi) yang
                             // dihitung sebagai "pendapatan" — konsisten dengan kartu
                             // Total Pendapatan di Dashboard.
-                            'total_revenue' => (float) $group->filter(fn($trx) => $trx->paid_at !== null)->sum('total_fee'),
+                            'total_revenue' => (float) $group->filter(fn ($trx) => $trx->paid_at !== null)->sum('total_fee'),
                         ];
                     })
                     ->sortByDesc('total_unit')
@@ -188,7 +188,7 @@ class ReportController extends Controller
                             'total_unit' => $group->sum('quantity'),
                             // Sama seperti laporan per barang: cuma yang sudah lunas
                             // yang dihitung, supaya totalnya nyambung ke Total Pendapatan.
-                            'total_fine' => (float) $group->filter(fn($trx) => $trx->paid_at !== null)->sum('total_fee'),
+                            'total_fine' => (float) $group->filter(fn ($trx) => $trx->paid_at !== null)->sum('total_fee'),
                         ];
                     })
                     ->sortByDesc('total_unit')
@@ -205,18 +205,18 @@ class ReportController extends Controller
             function () use ($start, $end, $category) {
                 $rows = $this->baseQuery($start, $end, $category)->get();
 
-                $avgDuration = $rows->avg(fn($trx) => max(1, $trx->start_date->diffInDays($trx->end_date)));
+                $avgDuration = $rows->avg(fn ($trx) => max(1, $trx->start_date->diffInDays($trx->end_date)));
 
                 // Piutang: denda yang sudah tercatat (total_fee > 0) tapi belum
                 // ditandai lunas (paid_at masih null) — supaya "Total Pendapatan"
                 // (uang yang sudah masuk) dan "Belum Dibayar" (uang yang masih
                 // harus ditagih) sama-sama kelihatan dan saling melengkapi.
-                $totalUnpaid = (float) $rows->filter(fn($trx) => $trx->paid_at === null)->sum('total_fee');
+                $totalUnpaid = (float) $rows->filter(fn ($trx) => $trx->paid_at === null)->sum('total_fee');
 
                 return [
                     'total_transactions' => $rows->pluck('loan_request_id')->unique()->count(),
                     'total_unit' => $rows->sum('quantity'),
-                    'total_revenue' => (float) $rows->filter(fn($trx) => $trx->paid_at !== null)->sum('total_fee'),
+                    'total_revenue' => (float) $rows->filter(fn ($trx) => $trx->paid_at !== null)->sum('total_fee'),
                     'total_unpaid' => $totalUnpaid,
                     'total_peminjam' => $rows->pluck('user_id')->unique()->count(),
                     'avg_duration' => $rows->isEmpty() ? 0 : (int) round($avgDuration),
@@ -242,7 +242,7 @@ class ReportController extends Controller
                 }
 
                 if ($category !== 'all') {
-                    $query->whereHas('item', fn($q) => $q->where('category', $category));
+                    $query->whereHas('item', fn ($q) => $q->where('category', $category));
                 }
 
                 $rows = $query->get()->groupBy('loan_request_id')->map(function ($group) {
@@ -254,10 +254,10 @@ class ReportController extends Controller
                 });
 
                 return [
-                    'pending' => $rows->filter(fn($s) => $s === 'pending')->count(),
-                    'booked' => $rows->filter(fn($s) => $s === 'booked')->count(),
-                    'completed' => $rows->filter(fn($s) => $s === 'completed')->count(),
-                    'rejected' => $rows->filter(fn($s) => $s === 'rejected')->count(),
+                    'pending' => $rows->filter(fn ($s) => $s === 'pending')->count(),
+                    'booked' => $rows->filter(fn ($s) => $s === 'booked')->count(),
+                    'completed' => $rows->filter(fn ($s) => $s === 'completed')->count(),
+                    'rejected' => $rows->filter(fn ($s) => $s === 'rejected')->count(),
                 ];
 
             }
@@ -282,7 +282,7 @@ class ReportController extends Controller
             // bukan string atau tipe lain. Kalau ternyata korup (misal karena
             // masalah serialisasi di cache driver 'database'), buang cache-nya
             // dan hitung ulang langsung, daripada membiarkan Blade crash.
-            if (!is_iterable($result)) {
+            if (! is_iterable($result)) {
                 throw new \RuntimeException('Cache laporan korup: hasil bukan iterable.');
             }
 
