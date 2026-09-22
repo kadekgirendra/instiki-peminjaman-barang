@@ -10,6 +10,7 @@
         "@tailwindcss/vite": "^4.0.0",
         "autoprefixer": "^10.5.4",
         "concurrently": "^10.0.5",
+        "fontaine": "^0.8.2",
         "laravel-vite-plugin": "^3.1",
         "postcss": "^8.5.28",
         "tailwindcss": "^4.3.3",
