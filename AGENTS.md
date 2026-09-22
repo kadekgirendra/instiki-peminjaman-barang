@@ -187,3 +187,44 @@ tanpa satu baris pun kode fitur diubah — membuktikan akarnya cuma 1
   generate key sendiri lewat `php artisan key:generate`. Mengisi key
   valid di `.env.example` berisiko banyak instalasi berbeda memakai
   key yang sama kalau developer lupa generate ulang.
+## 16. Dependabot — Major Version Bump Tetap Wajib Diverifikasi Manual
+
+CI hijau untuk PR Dependabot TIDAK menjamin semuanya aman, khususnya untuk
+package yang perilakunya tidak sepenuhnya tercakup oleh `php artisan test`
+atau `npm run build` — misalnya `concurrently` (cuma dipakai script `npm run
+dev`, tidak pernah dijalankan lewat CI). Untuk PR dengan LONCATAN MAJOR
+VERSION (bukan minor/patch), tetap jalankan skenario penggunaan aslinya
+secara manual di lokal sebelum benar-benar yakin aman, meski checks GitHub
+sudah hijau.
+
+**Kasus nyata (September 2026):** Dependabot mengusulkan `concurrently`
+9.x → 10.x dan `actions/checkout` v4 → v7 (loncat beberapa major version).
+Checks CI hijau untuk keduanya, tapi tetap diverifikasi manual: `npm run
+dev` dijalankan langsung untuk memastikan `concurrently` versi baru tidak
+breaking (package ini tidak tersentuh sama sekali oleh `npm run build` di
+CI), dan changelog resmi `actions/checkout` v7 dicek untuk memastikan
+breaking change-nya (soal trigger `pull_request_target`) tidak relevan
+karena workflow ini cuma pakai trigger `pull_request` biasa.
+
+## 17. Cache Driver Testing — `array` vs `database` Punya Perilaku Beda
+
+Test suite pakai `CACHE_STORE=array` (in-memory, tidak pernah serialize),
+sedangkan lokal/produksi pakai `CACHE_STORE=database` (serialize/unserialize
+lewat PHP `serialize()`). Bug korupsi cache (`__PHP_Incomplete_Class`, atau
+tipe data berubah jadi string) HANYA bisa terjadi di driver `database`,
+TIDAK akan pernah ketahuan lewat test biasa. SETIAP method yang pakai
+`Cache::remember()` untuk data terstruktur (array/Collection) WAJIB punya
+defensive fallback (validasi tipe + `Cache::forget()` + hitung ulang),
+bukan cuma andalkan try-catch exception — kadang cache korup tidak
+melempar exception sampai datanya benar-benar dipakai di tempat lain.
+
+**Kasus nyata (September 2026):** `ReportController::buildItemRows()`
+melempar `TypeError: Cannot access offset of type string on string` di
+`resources/views/admin/reports/index.blade.php` — cache laporan korup jadi
+string mentah, bukan Collection, tapi TIDAK ada exception saat
+`Cache::remember()` dipanggil, baru meledak saat Blade mengakses
+`$row['name']`. `ReportCacheTest` (yang jalan di `CACHE_STORE=array`) tidak
+pernah menangkap ini. Fix: tambahkan pengecekan `is_iterable($result)`
+eksplisit di `reportCacheRemember()`, bukan cuma try-catch, plus test baru
+yang taruh string mentah langsung ke cache untuk mensimulasikan korupsi
+tanpa perlu ganti `CACHE_STORE`.
