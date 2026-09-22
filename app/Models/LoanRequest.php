@@ -5,6 +5,8 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * @property Carbon $start_date
@@ -21,12 +23,18 @@ class LoanRequest extends Model
         'end_date' => 'date',
     ];
 
-    public function user()
+    /**
+     * @return BelongsTo<User, $this>
+     */
+    public function user(): BelongsTo
     {
         return $this->belongsTo(User::class)->withTrashed();
     }
 
-    public function transactions()
+    /**
+     * @return HasMany<Transaction, $this>
+     */
+    public function transactions(): HasMany
     {
         return $this->hasMany(Transaction::class);
     }

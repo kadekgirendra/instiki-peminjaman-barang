@@ -6,15 +6,21 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 
+
 #[Fillable(['name', 'category', 'description', 'image', 'total_stock', 'daily_fine_rate'])]
+
 class Item extends Model
 {
     use HasFactory, SoftDeletes;
 
-    public function transactions()
+    /**
+     * @return HasMany<Transaction, $this>
+     */
+    public function transactions(): HasMany
     {
         return $this->hasMany(Transaction::class);
     }
@@ -26,7 +32,7 @@ class Item extends Model
                 return static::select('category')
                     ->distinct()
                     ->pluck('category')
-                    ->map(fn ($c) => trim($c))
+                    ->map(fn($c) => trim($c))
                     ->unique()
                     ->values();
             });
@@ -40,7 +46,7 @@ class Item extends Model
             return static::select('category')
                 ->distinct()
                 ->pluck('category')
-                ->map(fn ($c) => trim($c))
+                ->map(fn($c) => trim($c))
                 ->unique()
                 ->values();
         }
