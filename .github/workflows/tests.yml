@@ -35,13 +35,20 @@ jobs:
           php artisan key:generate --force
           php artisan config:clear
 
+      - name: Audit dependency Composer
+        run: composer audit
+
       - name: Install & build asset frontend
         run: |
           npm ci
           npm run build
 
+      - name: Audit dependency npm
+        run: npm audit --audit-level=high
+
       - name: Cek format kode (Laravel Pint)
         run: ./vendor/bin/pint --test
+
       - name: Analisis statis (Larastan)
         run: ./vendor/bin/phpstan analyse --memory-limit=1G
 
