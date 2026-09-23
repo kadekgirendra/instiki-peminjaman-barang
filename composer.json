@@ -57,8 +57,12 @@
             "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",
             "@php artisan package:discover --ansi"
         ],
+        "post-install-cmd": [
+        "@php -r \"if (is_dir('.git')) { copy('.githooks/pre-commit', '.git/hooks/pre-commit'); chmod('.git/hooks/pre-commit', 0755); }\""
+        ],
         "post-update-cmd": [
-            "@php artisan vendor:publish --tag=laravel-assets --ansi --force"
+            "@php artisan vendor:publish --tag=laravel-assets --ansi --force",
+            "@php -r \"if (is_dir('.git')) { copy('.githooks/pre-commit', '.git/hooks/pre-commit'); chmod('.git/hooks/pre-commit', 0755); }\""
         ],
         "post-root-package-install": [
             "@php -r \"file_exists('.env') || copy('.env.example', '.env');\""
