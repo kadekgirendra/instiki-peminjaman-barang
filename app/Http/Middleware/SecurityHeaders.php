@@ -35,8 +35,8 @@ class SecurityHeaders
         // menegakkan policy-nya (Alpine.js butuh 'unsafe-eval', perlu
         // dipastikan dulu tidak ada resource lain yang kelewat).
         $response->headers->set(
-            'Content-Security-Policy-Report-Only',
-            "default-src 'self'; script-src 'self' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self';"
+            'Content-Security-Policy',
+            "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:;"
         );
 
         return $response;
