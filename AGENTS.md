@@ -228,3 +228,14 @@ pernah menangkap ini. Fix: tambahkan pengecekan `is_iterable($result)`
 eksplisit di `reportCacheRemember()`, bukan cuma try-catch, plus test baru
 yang taruh string mentah langsung ke cache untuk mensimulasikan korupsi
 tanpa perlu ganti `CACHE_STORE`.
+
+## 18. CSP — Alpine.js Butuh `unsafe-eval` + `unsafe-inline`, Chart.js dari CDN
+
+`script-src` WAJIB punya `'unsafe-eval'` (Alpine.js pakai `new Function()`
+untuk evaluasi directive) dan `'unsafe-inline'` (untuk inline event handler
+seperti `@click`). JANGAN dihapus, akan mematikan semua interaksi Alpine
+di project ini (dropdown, filter, kalender). `https://cdn.jsdelivr.net`
+WAJIB ada di `script-src` (Chart.js dashboard admin), dan `data:` WAJIB
+ada di `font-src` (icon font base64). Kalau nambah library CDN baru,
+WAJIB tes dulu di mode Report-Only sebelum aktifkan CSP enforced, cek
+Console browser di SEMUA halaman utama.
