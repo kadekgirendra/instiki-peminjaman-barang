@@ -70,7 +70,7 @@ Package `intervention/image` versi 4.x yang dipakai project ini PUNYA
 method yang beda nama dari versi lama yang sering muncul di tutorial:
 
 | Yang BENAR (v4) | Yang SALAH (v2/v3, jangan dipakai) |
-|---|---|
+| --- | --- |
 | `Image::decode($file)` | `Image::read($file)` / `Image::make($file)` |
 | `$image->encodeUsingFormat(Format::JPEG, quality: 80)` | `$image->toJpeg(80)` / `$image->encode('jpg', 80)` |
 
@@ -187,6 +187,7 @@ tanpa satu baris pun kode fitur diubah — membuktikan akarnya cuma 1
   generate key sendiri lewat `php artisan key:generate`. Mengisi key
   valid di `.env.example` berisiko banyak instalasi berbeda memakai
   key yang sama kalau developer lupa generate ulang.
+
 ## 16. Dependabot — Major Version Bump Tetap Wajib Diverifikasi Manual
 
 CI hijau untuk PR Dependabot TIDAK menjamin semuanya aman, khususnya untuk
@@ -239,3 +240,13 @@ WAJIB ada di `script-src` (Chart.js dashboard admin), dan `data:` WAJIB
 ada di `font-src` (icon font base64). Kalau nambah library CDN baru,
 WAJIB tes dulu di mode Report-Only sebelum aktifkan CSP enforced, cek
 Console browser di SEMUA halaman utama.
+
+## 19. Pertahanan XSS Utama Adalah Blade Auto-Escape, Bukan CSP
+
+Audit (September 2026) mengonfirmasi NOL penggunaan `{!! !!}` (raw output)
+di seluruh `resources/views/` — semua output pakai `{{ }}` yang otomatis
+escape HTML. INI yang jadi pertahanan XSS sesungguhnya di project ini,
+BUKAN CSP (yang terpaksa pakai `unsafe-inline` demi Alpine.js, sehingga
+lemah terhadap inline-script XSS). JANGAN PERNAH tambahkan `{!! $variable !!}`
+untuk data yang berasal dari input user tanpa sanitasi eksplisit — itu
+akan membuka celah XSS nyata yang CSP saat ini TIDAK akan mencegah.
