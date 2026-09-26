@@ -42,7 +42,7 @@ return [
     'enable_logs' => env('SENTRY_ENABLE_LOGS', false),
 
     // @see: https://docs.sentry.io/platforms/php/guides/laravel/configuration/options/#enable_metrics
-    'enable_metrics' => env('SENTRY_ENABLE_METRICS', true),
+    'enable_metrics' => env('SENTRY_ENABLE_METRICS', false),
 
     // @see: https://docs.sentry.io/platforms/php/guides/laravel/configuration/options/#log_flush_threshold
     'log_flush_threshold' => env('SENTRY_LOG_FLUSH_THRESHOLD') === null ? null : (int) env('SENTRY_LOG_FLUSH_THRESHOLD'),
