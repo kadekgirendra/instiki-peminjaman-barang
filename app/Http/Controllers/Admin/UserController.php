@@ -7,6 +7,7 @@ use App\Http\Requests\AdminUserRequest;
 use App\Models\Transaction;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class UserController extends Controller
 {
@@ -36,6 +37,8 @@ class UserController extends Controller
 
     public function show(User $user)
     {
+        abort_if($user->isAdmin(), 404);
+
         $statusMeta = [
             'pending' => ['label' => 'Tertunda', 'badge' => 'bg-warning/10 text-warning'],
             'booked' => ['label' => 'Disetujui', 'badge' => 'bg-success/10 text-success'],
@@ -126,11 +129,15 @@ class UserController extends Controller
 
     public function edit(User $user)
     {
+        abort_if($user->isAdmin(), 404);
+
         return view('admin.users.edit', compact('user'));
     }
 
     public function update(AdminUserRequest $request, User $user)
     {
+        abort_if($user->isAdmin(), 404);
+
         $validated = $request->validated();
 
         // Kalau field password dikosongkan saat edit, jangan timpa password lama.
@@ -147,6 +154,18 @@ class UserController extends Controller
 
     public function destroy(User $user)
     {
+        if ($user->id === Auth::id()) {
+            return back()->withErrors([
+                'error' => 'Anda tidak dapat menghapus akun Anda sendiri.',
+            ]);
+        }
+
+        if ($user->isAdmin()) {
+            return back()->withErrors([
+                'error' => 'Akun administrator tidak dapat dihapus.',
+            ]);
+        }
+
         $hasActiveTransactions = $user->transactions()
             ->whereIn('status', ['pending', 'booked'])
             ->exists();
