@@ -21,6 +21,7 @@ class LoanRequestExceptionHandlingTest extends TestCase
     {
         Storage::fake('local');
 
+        /** @var User $user */
         $user = User::factory()->create();
         $item = Item::factory()->create(['total_stock' => 1]);
 
@@ -61,6 +62,7 @@ class LoanRequestExceptionHandlingTest extends TestCase
         Storage::fake('local');
         Log::spy();
 
+        /** @var User $user */
         $user = User::factory()->create();
         $item = Item::factory()->create(['total_stock' => 5]);
 
