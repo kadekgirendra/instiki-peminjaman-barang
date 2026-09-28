@@ -14,7 +14,7 @@ class LoanRequestPolicy
      */
     public function view(User $user, LoanRequest $loanRequest): bool
     {
-        return $user->id === $loanRequest->user_id;
+        return $user->isAdmin() || $user->id === $loanRequest->user_id;
     }
 
     /**

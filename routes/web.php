@@ -26,6 +26,8 @@ Route::middleware('guest')->group(function () {
 });
 
 Route::middleware('auth')->post('/logout', [AuthController::class, 'logout'])->name('logout');
+Route::middleware('auth')->get('/loan-requests/{loanRequest}/document', [LoanRequestController::class, 'showDocument'])->name('loan-requests.document');
+
 Route::middleware(['auth', 'not-admin'])->group(function () {
 
     // Dashboard User

@@ -19,8 +19,9 @@ class LoanRequestExceptionHandlingTest extends TestCase
 
     public function test_stock_unavailable_exception_shows_specific_message_and_cleans_up_document(): void
     {
-        Storage::fake('public');
+        Storage::fake('local');
 
+        /** @var User $user */
         $user = User::factory()->create();
         $item = Item::factory()->create(['total_stock' => 1]);
 
@@ -52,15 +53,16 @@ class LoanRequestExceptionHandlingTest extends TestCase
         $this->assertStringContainsString($item->name, $errorMessage);
         $this->assertStringContainsString('tidak mencukupi', $errorMessage);
 
-        $uploadedFiles = Storage::disk('public')->allFiles('documents');
+        $uploadedFiles = Storage::disk('local')->allFiles('documents');
         $this->assertEmpty($uploadedFiles);
     }
 
     public function test_unexpected_system_exception_logs_error_and_shows_generic_message(): void
     {
-        Storage::fake('public');
+        Storage::fake('local');
         Log::spy();
 
+        /** @var User $user */
         $user = User::factory()->create();
         $item = Item::factory()->create(['total_stock' => 5]);
 
@@ -90,7 +92,7 @@ class LoanRequestExceptionHandlingTest extends TestCase
 
         Log::shouldHaveReceived('error')->atLeast()->once();
 
-        $uploadedFiles = Storage::disk('public')->allFiles('documents');
+        $uploadedFiles = Storage::disk('local')->allFiles('documents');
         $this->assertEmpty($uploadedFiles);
     }
 }
