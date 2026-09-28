@@ -89,7 +89,7 @@ class TransactionController extends Controller
             $documentUrl = null;
             $documentName = null;
             if ($loanRequest->document_path) {
-                $documentUrl = asset('storage/'.$loanRequest->document_path);
+                $documentUrl = route('loan-requests.document', $loanRequest);
                 $documentName = 'Dokumen Pendukung.'.pathinfo($loanRequest->document_path, PATHINFO_EXTENSION);
             }
 

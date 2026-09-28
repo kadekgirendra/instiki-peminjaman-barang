@@ -62,7 +62,7 @@ class LoanRequestController extends Controller
             return back()->withErrors(['cart' => 'Keranjang peminjaman kosong.']);
         }
 
-        $documentPath = $request->file('document')->store('documents', 'public');
+        $documentPath = $request->file('document')->store('documents', 'local');
 
         try {
             // $items di-return dari dalam transaction, supaya bisa dipakai lagi
@@ -117,20 +117,20 @@ class LoanRequestController extends Controller
         } catch (\PDOException $e) {
             // Error database / deadlock — laporkan ke log dan bersihkan dokumen upload
             report($e);
-            Storage::disk('public')->delete($documentPath);
+            Storage::disk('local')->delete($documentPath);
 
             return back()->withErrors(['cart' => 'Terjadi kesalahan saat memproses pengajuan. Silakan coba lagi.']);
         } catch (StockUnavailableException $e) {
             // Booking gagal (stok tidak cukup) — hapus dokumen yang sudah
             // terlanjur ter-upload supaya tidak jadi file sampah di storage.
-            Storage::disk('public')->delete($documentPath);
+            Storage::disk('local')->delete($documentPath);
 
             return back()->withErrors(['cart' => $e->getMessage()]);
         } catch (\Throwable $e) {
             // Error tak terduga (koneksi / sistem) — catat ke log
             // dan hapus dokumen yang terlanjur ter-upload supaya tidak jadi sampah.
             report($e);
-            Storage::disk('public')->delete($documentPath);
+            Storage::disk('local')->delete($documentPath);
 
             return back()->withErrors(['cart' => 'Terjadi kesalahan saat memproses pengajuan. Silakan coba lagi.']);
         }
@@ -143,5 +143,23 @@ class LoanRequestController extends Controller
             'loan_start_date' => Carbon::parse($validated['start_date'])->translatedFormat('j F Y'),
             'loan_end_date' => Carbon::parse($validated['end_date'])->translatedFormat('j F Y'),
         ]);
+    }
+
+    public function showDocument(LoanRequest $loanRequest)
+    {
+        $this->authorize('view', $loanRequest);
+
+        abort_if(empty($loanRequest->document_path), 404);
+
+        if (Storage::disk('local')->exists($loanRequest->document_path)) {
+            return Storage::disk('local')->response($loanRequest->document_path);
+        }
+
+        // Fallback untuk berkas lama yang diunggah ke disk 'public' sebelum migrasi ke private storage
+        if (Storage::disk('public')->exists($loanRequest->document_path)) {
+            return Storage::disk('public')->response($loanRequest->document_path);
+        }
+
+        abort(404);
     }
 }
