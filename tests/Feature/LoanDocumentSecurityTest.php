@@ -32,6 +32,7 @@ class LoanDocumentSecurityTest extends TestCase
         Storage::fake('local');
         Storage::disk('local')->put('documents/surat-tugas.pdf', 'isi dokumen dummy');
 
+        /** @var User $user */
         $user = User::factory()->create();
         $loanRequest = LoanRequest::factory()->create([
             'user_id' => $user->id,
@@ -50,7 +51,9 @@ class LoanDocumentSecurityTest extends TestCase
         Storage::fake('local');
         Storage::disk('local')->put('documents/surat-tugas.pdf', 'isi dokumen dummy');
 
+        /** @var User $owner */
         $owner = User::factory()->create();
+        /** @var User $otherUser */
         $otherUser = User::factory()->create();
 
         $loanRequest = LoanRequest::factory()->create([
@@ -70,7 +73,9 @@ class LoanDocumentSecurityTest extends TestCase
         Storage::fake('local');
         Storage::disk('local')->put('documents/surat-tugas.pdf', 'isi dokumen dummy');
 
+        /** @var User $admin */
         $admin = User::factory()->admin()->create();
+        /** @var User $user */
         $user = User::factory()->create();
 
         $loanRequest = LoanRequest::factory()->create([
@@ -90,6 +95,7 @@ class LoanDocumentSecurityTest extends TestCase
         Storage::fake('local');
         Storage::fake('public');
 
+        /** @var User $user */
         $user = User::factory()->create();
         $loanRequest = LoanRequest::factory()->create([
             'user_id' => $user->id,
@@ -105,6 +111,7 @@ class LoanDocumentSecurityTest extends TestCase
 
     public function test_returns_404_when_loan_request_has_no_document(): void
     {
+        /** @var User $user */
         $user = User::factory()->create();
         $loanRequest = LoanRequest::factory()->create([
             'user_id' => $user->id,
@@ -126,6 +133,7 @@ class LoanDocumentSecurityTest extends TestCase
         Storage::fake('local');
         Storage::fake('public');
 
+        /** @var User $user */
         $user = User::factory()->create();
         $loanRequest = LoanRequest::factory()->create([
             'user_id' => $user->id,
@@ -136,6 +144,8 @@ class LoanDocumentSecurityTest extends TestCase
 
         // File TIDAK ada di disk public — URL /storage/documents/... seharusnya
         // tidak bisa diakses langsung oleh siapapun.
-        Storage::disk('public')->assertMissing('documents/surat-rahasia.pdf');
+        // Menggunakan assertFalse+exists() karena assertMissing() hanya tersedia
+        // via Storage::fake() mixin dan tidak dapat di-trace Larastan.
+        $this->assertFalse(Storage::disk('public')->exists('documents/surat-rahasia.pdf'));
     }
 }
