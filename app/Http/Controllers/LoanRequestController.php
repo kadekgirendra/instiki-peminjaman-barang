@@ -151,13 +151,17 @@ class LoanRequestController extends Controller
 
         abort_if(empty($loanRequest->document_path), 404);
 
-        if (Storage::disk('local')->exists($loanRequest->document_path)) {
-            return Storage::disk('local')->response($loanRequest->document_path);
+        $path = Storage::disk('local')->path($loanRequest->document_path);
+
+        if (file_exists($path)) {
+            return response()->file($path);
         }
 
         // Fallback untuk berkas lama yang diunggah ke disk 'public' sebelum migrasi ke private storage
-        if (Storage::disk('public')->exists($loanRequest->document_path)) {
-            return Storage::disk('public')->response($loanRequest->document_path);
+        $publicPath = Storage::disk('public')->path($loanRequest->document_path);
+
+        if (file_exists($publicPath)) {
+            return response()->file($publicPath);
         }
 
         abort(404);
