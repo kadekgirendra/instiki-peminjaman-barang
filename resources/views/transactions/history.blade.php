@@ -137,7 +137,7 @@
 
                     {{-- Bukti foto pengembalian, kalau ada --}}
                     @if ($firstItem->return_photo)
-                        <a href="{{ asset('storage/' . $firstItem->return_photo) }}" target="_blank"
+                        <a href="{{ route('loan-requests.return-proof', $firstItem->loanRequest) }}" target="_blank"
                             class="inline-flex items-center gap-2 text-primary text-sm font-semibold hover:underline">
                             <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                 stroke-width="2">
