@@ -84,7 +84,7 @@ class TransactionController extends Controller
             $returnedAt = $group->pluck('returned_at')->filter()->max();
 
             $firstTrx = $group->first();
-            $returnPhotoUrl = $firstTrx->return_photo ? asset('storage/'.$firstTrx->return_photo) : null;
+            $returnPhotoUrl = $firstTrx->return_photo ? route('loan-requests.return-proof', $loanRequest) : null;
 
             $documentUrl = null;
             $documentName = null;

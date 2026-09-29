@@ -27,6 +27,7 @@ Route::middleware('guest')->group(function () {
 
 Route::middleware('auth')->post('/logout', [AuthController::class, 'logout'])->name('logout');
 Route::middleware('auth')->get('/loan-requests/{loanRequest}/document', [LoanRequestController::class, 'showDocument'])->name('loan-requests.document');
+Route::middleware('auth')->get('/loan-requests/{loanRequest}/return-proof', [ReturnController::class, 'showProof'])->name('loan-requests.return-proof');
 
 Route::middleware(['auth', 'not-admin'])->group(function () {
 

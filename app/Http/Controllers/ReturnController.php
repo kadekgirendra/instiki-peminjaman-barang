@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\LoanRequest;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class ReturnController extends Controller
 {
@@ -38,5 +39,33 @@ class ReturnController extends Controller
 
         return redirect()->route('transactions.index')
             ->with('return_success', true);
+    }
+
+    public function showProof(LoanRequest $loanRequest)
+    {
+        // Pakai ability 'view' (bukan 'returnItem') — ini konteksnya melihat
+        // hasil, bukan mengajukan pengembalian. Otorisasinya sama persis:
+        // admin ATAU pemilik pengajuan.
+        $this->authorize('view', $loanRequest);
+
+        $returnPhoto = $loanRequest->transactions()->whereNotNull('return_photo')->value('return_photo');
+
+        abort_if(empty($returnPhoto), 404);
+
+        $path = Storage::disk('local')->path($returnPhoto);
+
+        if (file_exists($path)) {
+            return response()->file($path);
+        }
+
+        // Fallback untuk berkas lama yang diunggah ke disk 'public' sebelum
+        // migrasi ke private storage.
+        $publicPath = Storage::disk('public')->path($returnPhoto);
+
+        if (file_exists($publicPath)) {
+            return response()->file($publicPath);
+        }
+
+        abort(404);
     }
 }
