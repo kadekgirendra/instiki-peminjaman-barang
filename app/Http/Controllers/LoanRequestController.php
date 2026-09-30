@@ -51,7 +51,19 @@ class LoanRequestController extends Controller
 
         $validated = $request->validate([
             'start_date' => 'required|date|after_or_equal:today',
-            'end_date' => 'required|date|after_or_equal:start_date',
+            'end_date' => [
+                'required',
+                'date',
+                'after_or_equal:start_date',
+                function ($attribute, $value, $fail) use ($request) {
+                    $start = Carbon::parse($request->input('start_date'));
+                    $end = Carbon::parse($value);
+
+                    if ($start->diffInDays($end) > 7) {
+                        $fail('Durasi peminjaman maksimal 7 hari.');
+                    }
+                },
+            ],
             'purpose' => 'nullable|string|max:500',
             'document' => 'required|file|mimes:pdf,jpg,jpeg,png|max:5120',
         ]);
