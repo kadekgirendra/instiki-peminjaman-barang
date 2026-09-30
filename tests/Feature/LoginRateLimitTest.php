@@ -79,4 +79,28 @@ class LoginRateLimitTest extends TestCase
         $message = session('errors')->get('username')[0];
         $this->assertStringContainsString('Terlalu banyak percobaan', $message);
     }
+
+    public function test_login_route_is_throttled_per_ip_regardless_of_username(): void
+    {
+        // 30 percobaan dengan USERNAME BERBEDA-BEDA dari IP yang sama —
+        // limiter per-username di LoginRequest tidak akan pernah ke-trigger
+        // di sini (tiap username punya kunci sendiri), jadi yang menahan
+        // HARUS throttle di level route.
+        for ($i = 1; $i <= 30; $i++) {
+            $response = $this->post(route('login'), [
+                'username' => "user{$i}",
+                'password' => 'password-salah',
+            ]);
+
+            $this->assertNotEquals(429, $response->getStatusCode());
+        }
+
+        // Percobaan ke-31 harus kena throttle route (429), bukan lagi 302/422.
+        $response = $this->post(route('login'), [
+            'username' => 'user31',
+            'password' => 'password-salah',
+        ]);
+
+        $response->assertStatus(429);
+    }
 }
