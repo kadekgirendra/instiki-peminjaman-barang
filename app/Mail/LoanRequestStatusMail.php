@@ -21,6 +21,13 @@ class LoanRequestStatusMail extends Mailable implements ShouldQueue
 {
     use Queueable, SerializesModels;
 
+    // Coba ulang maksimal 3 kali kalau gagal (misal SMTP sementara down),
+    // dengan jeda 30 detik antar percobaan — bukan langsung nyerah di
+    // percobaan pertama.
+    public $tries = 3;
+
+    public $backoff = 30;
+
     public function __construct(
         public LoanRequest $loanRequest,
         public string $status // 'booked' (disetujui) atau 'rejected' (ditolak)
@@ -44,5 +51,10 @@ class LoanRequestStatusMail extends Mailable implements ShouldQueue
                 'isApproved' => $this->status === 'booked',
             ],
         );
+    }
+
+    public function failed(\Throwable $exception): void
+    {
+        report($exception);
     }
 }
