@@ -21,7 +21,7 @@
                 </div>
 
                 {{-- Dropdown kategori — cuma tampil inline di desktop --}}
-                <select x-model="category" @change="$el.closest('form').submit()"
+                <select x-model="category" @change="$el.closest('form').submit()" aria-label="Filter kategori"
                     class="hidden lg:block w-auto px-4 py-2.5 rounded-lg border border-slate-200 bg-slate-50 text-slate-600 focus:outline-none focus:ring-2 focus:ring-primary">
                     <option value="all">All Categories</option>
                     @foreach ($categories as $cat)
@@ -45,14 +45,16 @@
             {{-- ============ PANEL FILTER DESKTOP — statis, TIDAK pakai Alpine sama sekali ============ --}}
             <div class="hidden lg:flex flex-row flex-wrap items-end gap-3 mb-6 bg-surface p-4 rounded-xl shadow-sm">
                 <div class="w-64">
-                    <label class="block text-sm font-semibold text-secondary mb-1">Tanggal Pinjam</label>
-                    <input type="date" x-model="dateStart"
+                    <label for="start-date-desktop" class="block text-sm font-semibold text-secondary mb-1">Tanggal
+                        Pinjam</label>
+                    <input type="date" id="start-date-desktop" x-model="dateStart"
                         class="w-full px-4 py-2.5 rounded-lg border border-slate-200 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-primary">
                 </div>
 
                 <div class="w-64">
-                    <label class="block text-sm font-semibold text-secondary mb-1">Tanggal Kembali</label>
-                    <input type="date" x-model="dateEnd"
+                    <label for="end-date-desktop" class="block text-sm font-semibold text-secondary mb-1">Tanggal
+                        Kembali</label>
+                    <input type="date" id="end-date-desktop" x-model="dateEnd"
                         class="w-full px-4 py-2.5 rounded-lg border border-slate-200 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-primary">
                 </div>
 
@@ -76,8 +78,9 @@
                 class="lg:hidden flex flex-col gap-3 mb-6 bg-surface p-4 rounded-xl shadow-sm">
 
                 <div class="w-full">
-                    <label class="block text-sm font-semibold text-secondary mb-1">Kategori</label>
-                    <select x-model="category" @change="$el.closest('form').submit()"
+                    <label for="category-mobile"
+                        class="block text-sm font-semibold text-secondary mb-1">Kategori</label>
+                    <select id="category-mobile" x-model="category" @change="$el.closest('form').submit()"
                         class="w-full px-4 py-2.5 rounded-lg border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-primary">
                         <option value="all">All Categories</option>
                         @foreach ($categories as $cat)
@@ -87,14 +90,16 @@
                 </div>
 
                 <div class="w-full">
-                    <label class="block text-sm font-semibold text-secondary mb-1">Tanggal Pinjam</label>
-                    <input type="date" x-model="dateStart"
+                    <label for="start-date-mobile" class="block text-sm font-semibold text-secondary mb-1">Tanggal
+                        Pinjam</label>
+                    <input type="date" id="start-date-mobile" x-model="dateStart"
                         class="w-full px-4 py-2.5 rounded-lg border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-primary">
                 </div>
 
                 <div class="w-full">
-                    <label class="block text-sm font-semibold text-secondary mb-1">Tanggal Kembali</label>
-                    <input type="date" x-model="dateEnd"
+                    <label for="end-date-mobile" class="block text-sm font-semibold text-secondary mb-1">Tanggal
+                        Kembali</label>
+                    <input type="date" id="end-date-mobile" x-model="dateEnd"
                         class="w-full px-4 py-2.5 rounded-lg border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-primary">
                 </div>
 
@@ -124,7 +129,8 @@
                 <div
                     class="h-44 bg-slate-100 rounded-lg mb-4 flex items-center justify-center overflow-hidden {{ !$isAvailable ? 'opacity-50' : '' }}">
                     @if ($item->image)
-                        <img src="{{ asset('storage/' . $item->image) }}" loading="lazy" class="h-full w-full object-contain">
+                        <img src="{{ asset('storage/' . $item->image) }}" alt="{{ $item->name }}" loading="lazy"
+                            class="h-full w-full object-contain">
                     @else
                         <span class="text-slate-400 text-sm">Tidak ada foto</span>
                     @endif

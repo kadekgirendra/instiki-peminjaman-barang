@@ -15,7 +15,8 @@
         {{-- picture items --}}
         <div class="bg-surface rounded-2xl shadow-sm p-4 sm:p-6 flex items-center justify-center h-64 sm:h-105">
             @if ($item->image)
-                <img src="{{ asset('storage/' . $item->image) }}" class="h-full w-full object-contain"
+                <img src="{{ asset('storage/' . $item->image) }}" alt="{{ $item->name }}"
+                    class="h-full w-full object-contain"
                     onerror="this.onerror=null; this.replaceWith(Object.assign(document.createElement('span'), {className: 'text-slate-400 text-sm', textContent: 'Gambar tidak tersedia'}));">
             @else
                 <span class="text-slate-400">Tidak ada foto</span>
@@ -91,8 +92,8 @@
                     <h2 class="text-xl sm:text-2xl font-bold text-secondary mb-5 sm:mb-6">Jumlah Barang</h2>
 
                     <div class="bg-slate-50 rounded-xl p-4 sm:p-5 mb-5 sm:mb-6">
-                        <label class="block font-semibold text-secondary mb-2">Jumlah *</label>
-                        <div class="flex items-center gap-3">
+                        <label id="qty-label" class="block font-semibold text-secondary mb-2">Jumlah *</label>
+                        <div class="flex items-center gap-3" role="group" aria-labelledby="qty-label">
                             <button type="button" @click="quantity = Math.max(1, quantity - 1)"
                                 class="w-11 h-11 shrink-0 rounded-lg bg-slate-200 text-secondary font-bold text-lg"
                                 aria-label="Kurangi jumlah">−</button>
