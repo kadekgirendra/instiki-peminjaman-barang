@@ -8,7 +8,7 @@
     },
     "devDependencies": {
         "@tailwindcss/vite": "^4.0.0",
-        "autoprefixer": "^10.5.4",
+        "autoprefixer": "^10.6.1",
         "concurrently": "^10.0.5",
         "fontaine": "^0.8.2",
         "laravel-vite-plugin": "^3.2",
