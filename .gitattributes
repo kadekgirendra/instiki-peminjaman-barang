@@ -1,11 +1,23 @@
+# Paksa semua file teks pakai LF saat disimpan di repository,
+# apapun OS yang dipakai kontributor (Mac, Linux, Windows).
 * text=auto eol=lf
 
-*.blade.php diff=html
-*.css diff=css
-*.html diff=html
-*.md diff=markdown
-*.php diff=php
+# File biner — jangan pernah disentuh/dinormalisasi line ending-nya.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.eot binary
+*.zip binary
+*.pdf binary
 
-/.github export-ignore
-CHANGELOG.md export-ignore
-.styleci.yml export-ignore
+# Baris export-ignore: file ini tidak ikut ke dalam arsip `git archive`
+# (misal kalau nanti dipakai GitHub untuk generate source code zip di
+# halaman Releases) — tidak relevan buat dikirim ke end user.
+.gitattributes export-ignore
+.gitignore export-ignore
+AGENTS.md export-ignore
