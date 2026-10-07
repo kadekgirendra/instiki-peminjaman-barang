@@ -34,3 +34,26 @@
 * {
     -webkit-tap-highlight-color: transparent;
 }
+
+/*
+ * Global focus ring — WCAG 2.4.7 (Level AA).
+ * Pakai :focus-visible bukan :focus supaya ring hanya muncul
+ * saat navigasi keyboard, tidak saat klik mouse/touch.
+ */
+a:focus-visible,
+button:focus-visible,
+select:focus-visible,
+[role="button"]:focus-visible,
+[tabindex]:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+    border-radius: 4px;
+}
+
+/* Hapus outline default browser yang sudah ada; kita definisikan sendiri di atas */
+a:focus,
+button:focus,
+select:focus,
+[role="button"]:focus {
+    outline: none;
+}
