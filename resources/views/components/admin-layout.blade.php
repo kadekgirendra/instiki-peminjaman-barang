@@ -7,7 +7,6 @@
   <title>{{ $title ?? 'Sistem Peminjaman Barang Kampus INSTIKI' }}</title>
   @vite(['resources/css/app.css', 'resources/js/app.js'])
   @stack('styles')
-  @stack('scripts')
 </head>
 
 <body class="bg-background">
@@ -97,7 +96,8 @@
 
         {{-- Dropdown Notifikasi --}}
         <div x-data="{ open: false }" class="relative">
-          <button @click="open = !open" class="relative text-slate-500">
+          <button @click="open = !open" class="relative text-slate-500"
+                  aria-label="Notifikasi" aria-haspopup="dialog" :aria-expanded="open">
             <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path stroke-linecap="round" stroke-linejoin="round"
                 d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
@@ -189,7 +189,8 @@
 
         {{-- Dropdown Profil --}}
         <div x-data="{ open: false }" class="relative">
-          <button @click="open = !open" class="flex items-center gap-3">
+          <button @click="open = !open" class="flex items-center gap-3"
+                  aria-label="Menu profil" aria-haspopup="menu" :aria-expanded="open">
             <div class="text-right leading-tight">
               <p class="font-semibold text-secondary text-sm">{{ auth()->user()->name }}</p>
               <p class="text-xs text-slate-400">Admin</p>
@@ -230,6 +231,7 @@
       </main>
     </div>
   </div>
+  @stack('scripts')
 </body>
 
 </html>
