@@ -4,6 +4,8 @@
 @source '../../storage/framework/views/*.php';
 
 @theme {
+    --font-sans: "Inter", sans-serif;
+
     --color-primary: #FE0000;
     --color-secondary: #1A2848;
     --color-background: #F9FAFB;
@@ -17,10 +19,9 @@
 
     /* background badge */
     --color-info: #3B82F6;
-      
+
     --color-primary-dark: #A10303;
 }
-
 [x-cloak] {
     display: none !important;
 }
