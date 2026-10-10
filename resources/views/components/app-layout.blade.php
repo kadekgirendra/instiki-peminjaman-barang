@@ -27,7 +27,7 @@
                     $navItems = [
                         ['route' => 'dashboard', 'label' => 'Dashboard', 'icon' => 'grid'],
                         ['route' => 'items.index', 'label' => 'Katalog', 'icon' => 'box'],
-                        ['route' => 'transactions.index', 'label' => 'Pinjaman Saya', 'icon' => 'box'],
+                        ['route' => 'transactions.index', 'label' => 'Pinjaman Saya', 'icon' => 'clipboard'],
                         ['route' => 'transactions.history', 'label' => 'History', 'icon' => 'clock'],
                     ];
                 @endphp
@@ -36,7 +36,7 @@
                     @php $isActive = request()->routeIs($item['route']); @endphp
                     <a href="{{ route($item['route']) }}"
                         class="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition
-                                              {{ $isActive ? 'bg-primary text-white' : 'text-slate-300 hover:bg-white/5' }}">
+                            {{ $isActive ? 'bg-primary text-white' : 'text-slate-300 hover:bg-white/5' }}">
 
                         @if ($item['icon'] === 'grid')
                             <svg class="w-5 h-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -52,6 +52,13 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M21 8l-9-5-9 5 9 5 9-5z" />
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M3 8v8l9 5 9-5V8" />
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 13v8" />
+                            </svg>
+                        @elseif ($item['icon'] === 'clipboard')
+                            <svg class="w-5 h-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="1.8">
+                                <rect x="5" y="4" width="14" height="17" rx="2" />
+                                <rect x="9" y="2" width="6" height="4" rx="1" />
+                                <path stroke-linecap="round" d="M9 11h6M9 15h6" />
                             </svg>
                         @elseif ($item['icon'] === 'clock')
                             <svg class="w-5 h-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -87,7 +94,8 @@
                     {{-- Dropdown Notifikasi --}}
                     <div x-data="{ open: false }" class="relative">
                         <button @click="open = !open" class="relative text-slate-500" aria-label="Notifikasi">
-                            <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
                                 <path stroke-linecap="round" stroke-linejoin="round"
                                     d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                             </svg>
@@ -137,20 +145,28 @@
                                             <p class="font-semibold text-secondary">{{ $reminder->item->name }}</p>
                                             <p class="text-sm text-slate-500 mb-2">
                                                 Tenggat :
-                                                @if ($daysDiff === -1) Kemarin
-                                                @elseif ($daysDiff === 0) Hari ini
-                                                @elseif ($daysDiff === 1) Besok
-                                                @else {{ $endDate->translatedFormat('j F Y') }}
+                                                @if ($daysDiff === -1)
+                                                    Kemarin
+                                                @elseif ($daysDiff === 0)
+                                                    Hari ini
+                                                @elseif ($daysDiff === 1)
+                                                    Besok
+                                                @else
+                                                    {{ $endDate->translatedFormat('j F Y') }}
                                                 @endif
                                             </p>
 
                                             <div class="flex items-center gap-3 flex-wrap">
                                                 <span
                                                     class="{{ $isOverdue ? 'bg-danger' : 'bg-warning' }} text-white text-xs font-semibold px-3 py-1 rounded-full">
-                                                    @if ($isOverdue) Terlambat
-                                                    @elseif ($daysDiff === 1) Tersisa 1 hari
-                                                    @elseif ($daysDiff === 0) Jatuh tempo hari ini
-                                                    @else Tersisa {{ $daysDiff }} hari
+                                                    @if ($isOverdue)
+                                                        Terlambat
+                                                    @elseif ($daysDiff === 1)
+                                                        Tersisa 1 hari
+                                                    @elseif ($daysDiff === 0)
+                                                        Jatuh tempo hari ini
+                                                    @else
+                                                        Tersisa {{ $daysDiff }} hari
                                                     @endif
                                                 </span>
 
@@ -162,7 +178,8 @@
                                         </div>
                                     </div>
                                 @empty
-                                    <p class="text-slate-500 text-center py-8 text-sm">Tidak ada pengingat saat ini.</p>
+                                    <p class="text-slate-500 text-center py-8 text-sm">Tidak ada pengingat saat ini.
+                                    </p>
                                 @endforelse
                             </div>
 
@@ -228,24 +245,35 @@
 
             @foreach ($navItems as $item)
                 @php $isActive = request()->routeIs($item['route']); @endphp
-                <a href="{{ route($item['route']) }}" aria-label="{{ $item['label'] }}" class="flex flex-col items-center gap-1 px-3 py-1.5 rounded-lg transition
-                                          {{ $isActive ? 'text-primary' : 'text-slate-400 hover:text-white' }}">
+                <a href="{{ route($item['route']) }}" aria-label="{{ $item['label'] }}"
+                    class="flex flex-col items-center gap-1 px-3 py-1.5 rounded-lg transition
+                    {{ $isActive ? 'text-primary' : 'text-slate-400 hover:text-white' }}">
 
                     @if ($item['icon'] === 'grid')
-                        <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
                             <rect x="3" y="3" width="7" height="7" rx="1.5" />
                             <rect x="14" y="3" width="7" height="7" rx="1.5" />
                             <rect x="3" y="14" width="7" height="7" rx="1.5" />
                             <rect x="14" y="14" width="7" height="7" rx="1.5" />
                         </svg>
                     @elseif ($item['icon'] === 'box')
-                        <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                        <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="1.8">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M21 8l-9-5-9 5 9 5 9-5z" />
                             <path stroke-linecap="round" stroke-linejoin="round" d="M3 8v8l9 5 9-5V8" />
                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 13v8" />
                         </svg>
+                    @elseif ($item['icon'] === 'clipboard')
+                        <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="1.8">
+                            <rect x="5" y="4" width="14" height="17" rx="2" />
+                            <rect x="9" y="2" width="6" height="4" rx="1" />
+                            <path stroke-linecap="round" d="M9 11h6M9 15h6" />
+                        </svg>
                     @elseif ($item['icon'] === 'clock')
-                        <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 2" />
                             <path stroke-linecap="round" stroke-linejoin="round" d="M3.5 9a9 9 0 111.5 8.5" />
                             <path stroke-linecap="round" stroke-linejoin="round" d="M3 4v5h5" />
@@ -267,7 +295,8 @@
         class="fixed top-4 left-4 right-4 sm:left-auto sm:right-4 sm:w-96 z-100">
         <div class="rounded-xl shadow-lg px-5 py-4 text-white font-medium text-sm flex items-center gap-3"
             :class="type === 'success' ? 'bg-success' : 'bg-danger'">
-            <svg class="w-5 h-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <svg class="w-5 h-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2">
                 <circle cx="12" cy="12" r="9" />
                 <path stroke-linecap="round" d="M12 8v5M12 16h.01" />
             </svg>
