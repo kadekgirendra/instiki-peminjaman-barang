@@ -167,10 +167,32 @@
                         </td>
                     </tr>
                 @empty
-                    <tr>
-                        <td colspan="6" class="text-center text-slate-500 py-10">Belum ada barang. Tambahkan barang pertama.
-                        </td>
-                    </tr>
+                    <div class="col-span-full flex flex-col items-center text-center py-16 px-4">
+                        <div class="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mb-4">
+                            <svg class="w-8 h-8 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="1.8" aria-hidden="true">
+                                <circle cx="11" cy="11" r="7" />
+                                <path stroke-linecap="round" d="M21 21l-3.5-3.5" />
+                            </svg>
+                        </div>
+
+                        @if (request()->hasAny(['search', 'category', 'start_date', 'end_date']))
+                            <h2 class="text-lg font-semibold text-secondary mb-1">Barang tidak ditemukan</h2>
+                            <p class="text-sm text-slate-500 mb-5 max-w-sm">
+                                Tidak ada barang yang cocok dengan pencarian atau filter yang kamu pilih.
+                                Coba ubah kata kunci, kategori, atau tanggal.
+                            </p>
+                            <a href="{{ route('items.index') }}"
+                                class="bg-primary text-white text-sm font-semibold px-6 py-2.5 rounded-lg hover:opacity-90 transition">
+                                Reset filter
+                            </a>
+                        @else
+                            <h2 class="text-lg font-semibold text-secondary mb-1">Belum ada barang</h2>
+                            <p class="text-sm text-slate-500 max-w-sm">
+                                Katalog masih kosong. Barang yang tersedia untuk dipinjam akan muncul di sini.
+                            </p>
+                        @endif
+                    </div>
                 @endforelse
             </tbody>
         </table>
