@@ -32,7 +32,7 @@
     @endif
 
     {{-- Table --}}
-    <div class="bg-surface rounded-2xl shadow-sm overflow-hidden">
+    <div class="bg-surface rounded-2xl shadow-sm overflow-hidden overflow-x-auto">
         <table class="w-full text-sm text-left">
             <thead class="bg-secondary text-white">
                 <tr>
@@ -45,7 +45,7 @@
             </thead>
             <tbody>
                 @forelse ($users as $user)
-                    <tr x-data="{ confirmDelete: false }" onclick="window.location='{{ route('admin.users.show', $user) }}'"
+                    <tr x-data="{ confirmDelete: false }" @click="window.location = @js(route('admin.users.show', $user))"
                         class="border-b border-slate-100 last:border-0 hover:bg-background/60 transition cursor-pointer">
                         <td class="py-4 px-6 font-medium text-secondary">
                             <div class="flex items-center gap-3">
@@ -53,13 +53,15 @@
                                     class="w-9 h-9 rounded-full bg-secondary text-white flex items-center justify-center font-semibold text-sm shrink-0">
                                     {{ strtoupper(substr($user->name, 0, 1)) }}
                                 </div>
-                                <span>{{ $user->name }}</span>
+                                <a href="{{ route('admin.users.show', $user) }}" class="hover:text-primary transition">
+                                    {{ $user->name }}
+                                </a>
                             </div>
                         </td>
                         <td class="py-4 px-6 text-slate-500">{{ $user->username }}</td>
                         <td class="py-4 px-6 text-slate-500">{{ $user->nim_nidn ?? '-' }}</td>
                         <td class="py-4 px-6 text-slate-500">{{ $user->transactions_count }} transaksi</td>
-                        <td class="py-4 px-6" onclick="event.stopPropagation()">
+                        <td class="py-4 px-6" @click.stop>
                             <div class="flex items-center gap-3">
                                 <a href="{{ route('admin.users.edit', $user) }}" title="Edit / reset password"
                                     class="text-secondary hover:text-primary transition">
