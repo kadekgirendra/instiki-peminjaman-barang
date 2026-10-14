@@ -32,7 +32,7 @@
     @endif
 
     {{-- Table --}}
-    <div class="bg-surface rounded-2xl shadow-sm overflow-hidden">
+    <div class="bg-surface rounded-2xl shadow-sm overflow-hidden overflow-x-auto">
         <table class="w-full text-sm text-left">
             <thead class="bg-secondary text-white">
                 <tr>
