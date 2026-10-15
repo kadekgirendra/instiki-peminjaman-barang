@@ -137,7 +137,7 @@
 
             {{-- Rekap barang yang paling sering dipinjam user ini --}}
             @if ($itemSummary->isNotEmpty())
-                <div class="bg-surface rounded-2xl shadow-sm overflow-hidden">
+                <div class="bg-surface rounded-2xl shadow-sm overflow-hidden overflow-x-auto">
                     <div class="px-6 py-5 border-b border-slate-100">
                         <h2 class="font-bold text-secondary">Rekap Barang</h2>
                         <p class="text-slate-400 text-xs mt-0.5">Total barang yang pernah dipinjam, sepanjang riwayat</p>

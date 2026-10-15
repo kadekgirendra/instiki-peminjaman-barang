@@ -110,7 +110,7 @@
         @endif
 
         {{-- Table --}}
-        <div class="bg-surface rounded-2xl shadow-sm overflow-hidden">
+        <div class="bg-surface rounded-2xl shadow-sm overflow-hidden overflow-x-auto">
             <table class="w-full text-sm text-left">
                 <thead class="bg-secondary text-white">
                     <tr>
@@ -245,7 +245,7 @@
 
                             <div>
                                 <p class="text-xs text-slate-400 mb-2">Barang</p>
-                                <div class="border border-slate-200 rounded-xl overflow-hidden">
+                                <div class="border border-slate-200 rounded-xl overflow-hidden overflow-x-auto">
                                     <table class="w-full text-sm">
                                         <thead class="bg-background text-slate-500">
                                             <tr>
@@ -406,7 +406,7 @@
                                 </div>
 
                                 <p class="text-xs text-slate-400 mb-2">Rincian Denda per Barang</p>
-                                <div class="border border-slate-200 rounded-xl overflow-hidden mb-3">
+                                <div class="border border-slate-200 rounded-xl overflow-hidden overflow-x-auto mb-3">
                                     <table class="w-full text-sm">
                                         <thead class="bg-background text-slate-500">
                                             <tr>
