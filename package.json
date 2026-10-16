@@ -12,7 +12,7 @@
         "concurrently": "^10.0.5",
         "fontaine": "^0.8.2",
         "laravel-vite-plugin": "^3.2",
-        "postcss": "^8.5.28",
+        "postcss": "^8.5.30",
         "tailwindcss": "^4.3.3",
         "vite": "^8.3.4"
     },
