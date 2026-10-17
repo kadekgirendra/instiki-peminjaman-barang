@@ -350,7 +350,7 @@
                                 class="px-4 py-2.5 w-full sm:w-64 rounded-lg border border-slate-200 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-primary">
                             <select x-model="category"
                                 class="px-4 py-2.5 w-full sm:w-auto rounded-lg border border-slate-200 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-primary">
-                                <option value="all">All Categories</option>
+                                <option value="all">Semua Kategori</option>
                                 @foreach ($categories as $cat)
                                     <option value="{{ $cat }}">{{ $cat }}</option>
                                 @endforeach
