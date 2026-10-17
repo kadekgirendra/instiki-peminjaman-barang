@@ -16,14 +16,14 @@
                         <circle cx="11" cy="11" r="7" />
                         <path stroke-linecap="round" d="M21 21l-3.5-3.5" />
                     </svg>
-                    <input type="text" name="search" value="{{ request('search') }}" placeholder="Search items..."
+                    <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari barang..."
                         class="pl-10 pr-4 py-2.5 w-full rounded-lg border border-slate-200 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-primary">
                 </div>
 
                 {{-- Dropdown kategori — cuma tampil inline di desktop --}}
                 <select x-model="category" @change="$el.closest('form').submit()" aria-label="Filter kategori"
                     class="hidden lg:block w-auto px-4 py-2.5 rounded-lg border border-slate-200 bg-slate-50 text-slate-600 focus:outline-none focus:ring-2 focus:ring-primary">
-                    <option value="all">All Categories</option>
+                    <option value="all">Semua Kategori</option>
                     @foreach ($categories as $cat)
                         <option value="{{ $cat }}">{{ $cat }}</option>
                     @endforeach
@@ -82,7 +82,7 @@
                         class="block text-sm font-semibold text-secondary mb-1">Kategori</label>
                     <select id="category-mobile" x-model="category" @change="$el.closest('form').submit()"
                         class="w-full px-4 py-2.5 rounded-lg border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-primary">
-                        <option value="all">All Categories</option>
+                        <option value="all">Semua Kategori</option>
                         @foreach ($categories as $cat)
                             <option value="{{ $cat }}">{{ $cat }}</option>
                         @endforeach
@@ -125,14 +125,22 @@
         @forelse ($items as $item)
             @php $isAvailable = $item->available_stock > 0; @endphp
 
-            <div class="bg-surface rounded-xl shadow-sm p-5">
+            <div
+                class="bg-surface rounded-xl shadow-sm p-5 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200">
                 <div
                     class="h-44 bg-slate-100 rounded-lg mb-4 flex items-center justify-center overflow-hidden {{ !$isAvailable ? 'opacity-50' : '' }}">
                     @if ($item->image)
                         <img src="{{ asset('storage/' . $item->image) }}" alt="{{ $item->name }}" loading="lazy"
                             class="h-full w-full object-contain">
                     @else
-                        <span class="text-slate-400 text-sm">Tidak ada foto</span>
+                        <div class="flex flex-col items-center justify-center gap-2">
+                            <svg class="w-10 h-10 text-slate-300" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="1.5">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M2.25 19.5h19.5M3.75 4.5h16.5a1.5 1.5 0 011.5 1.5v12a1.5 1.5 0 01-1.5 1.5H3.75A1.5 1.5 0 012.25 18V6a1.5 1.5 0 011.5-1.5z" />
+                            </svg>
+                            <span class="text-slate-400 text-xs">Tidak ada foto</span>
+                        </div>
                     @endif
                 </div>
 
@@ -149,15 +157,15 @@
                 </p>
 
                 <p class="text-sm mb-4">
-                    Stock:
+                    Stok:
                     <span class="font-semibold {{ $isAvailable ? 'text-success' : 'text-danger' }}">
-                        {{ $item->available_stock }} units
+                        {{ $item->available_stock }} unit
                     </span>
                 </p>
 
                 @if ($isAvailable)
                     <a href="{{ route('items.show', $item) }}?start_date={{ request('start_date') }}&end_date={{ request('end_date') }}"
-                        class="block text-center bg-primary text-white font-semibold py-2.5 rounded-lg hover:opacity-90 transition">
+                        class="block text-center bg-primary text-white font-semibold py-2.5 rounded-lg hover:bg-primary-dark transition cursor-pointer">
                         Pinjam
                     </a>
                 @else
@@ -168,9 +176,24 @@
                 @endif
             </div>
         @empty
-            <p class="text-slate-500 col-span-3 text-center py-10">
-                Tidak ada barang ditemukan.
-            </p>
+            <div class="col-span-1 sm:col-span-2 lg:col-span-3 flex flex-col items-center justify-center py-16 text-center">
+                <div class="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mb-4">
+                    <svg class="w-8 h-8 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="1.5">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 15.803a7.5 7.5 0 0010.607 0z" />
+                    </svg>
+                </div>
+
+                @if (request()->hasAny(['search', 'category', 'start_date', 'end_date']))
+                    <p class="font-semibold text-secondary mb-1">Barang tidak ditemukan</p>
+                    <p class="text-sm text-slate-400 mb-4">Coba ubah filter atau kata kunci pencarian.</p>
+                    <a href="{{ route('items.index') }}" class="text-sm font-semibold text-primary hover:underline">Reset pencarian</a>
+                @else
+                    <p class="font-semibold text-secondary mb-1">Belum ada barang</p>
+                    <p class="text-sm text-slate-400">Katalog masih kosong. Barang yang tersedia akan muncul di sini.</p>
+                @endif
+            </div>
         @endforelse
     </div>
     </div>

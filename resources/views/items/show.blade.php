@@ -19,7 +19,13 @@
                     class="h-full w-full object-contain"
                     onerror="this.onerror=null; this.replaceWith(Object.assign(document.createElement('span'), {className: 'text-slate-400 text-sm', textContent: 'Gambar tidak tersedia'}));">
             @else
-                <span class="text-slate-400">Tidak ada foto</span>
+                <div class="flex flex-col items-center justify-center gap-2">
+                    <svg class="w-12 h-12 text-slate-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M2.25 19.5h19.5M3.75 4.5h16.5a1.5 1.5 0 011.5 1.5v12a1.5 1.5 0 01-1.5 1.5H3.75A1.5 1.5 0 012.25 18V6a1.5 1.5 0 011.5-1.5z" />
+                    </svg>
+                    <span class="text-slate-400 text-sm">Tidak ada foto</span>
+                </div>
             @endif
         </div>
 
@@ -38,11 +44,13 @@
                     <span class="text-3xl sm:text-4xl font-bold text-secondary">{{ $availableStock }}</span>
                     <span class="text-slate-500 ml-1">unit tersedia</span>
                 </p>
-                <div class="flex gap-2">
+                <div class="flex gap-2" role="meter" aria-label="Ketersediaan stok: {{ $availableStock }} unit"
+                     aria-valuenow="{{ $availableStock }}" aria-valuemin="0" aria-valuemax="5">
                     @php $filledSegments = min($availableStock, 5); @endphp
                     @for ($i = 1; $i <= 5; $i++)
                         <span
-                            class="h-2 flex-1 rounded-full {{ $i <= $filledSegments ? 'bg-category' : 'bg-slate-200' }}"></span>
+                            class="h-2 flex-1 rounded-full {{ $i <= $filledSegments ? 'bg-category' : 'bg-slate-200' }}"
+                            aria-hidden="true"></span>
                     @endfor
                 </div>
             </div>
@@ -63,7 +71,7 @@
             <div class="hidden lg:block">
                 @if ($availableStock > 0)
                     <button type="button" @click="showQtyModal = true; quantity = 1"
-                        class="block w-full text-center bg-primary text-white font-semibold py-3.5 rounded-xl hover:opacity-90 transition mb-4">
+                        class="block w-full text-center bg-primary text-white font-semibold py-3.5 rounded-xl hover:bg-primary-dark transition cursor-pointer mb-4">
                         Pinjam Sekarang
                     </button>
                 @else
